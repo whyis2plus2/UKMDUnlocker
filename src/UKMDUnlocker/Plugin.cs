@@ -85,16 +85,21 @@ public class Plugin : MonoBehaviour
             ukmdTrigger.triggers.Clear();
             
             // show ukmd info on mouse hover
-            EventTrigger.Entry showInfo = new() { eventID = EventTriggerType.PointerEnter };
-            showInfo.callback.AddListener((data) => ukmdInfo.SetActive(true));
+            EventTrigger.Entry pointerEnter = new() { eventID = EventTriggerType.PointerEnter };
+            pointerEnter.callback.AddListener((data) => ukmdInfo.SetActive(true));
 
             // hide ukmd info on mouse exit
-            EventTrigger.Entry hideInfo = new() { eventID = EventTriggerType.PointerExit };
-            hideInfo.callback.AddListener((data) => ukmdInfo.SetActive(false));
+            EventTrigger.Entry pointerExit = new() { eventID = EventTriggerType.PointerExit };
+            pointerExit.callback.AddListener((data) => ukmdInfo.SetActive(false));
+
+            // hide ukmd info when clicked
+            EventTrigger.Entry onClick = new() { eventID = EventTriggerType.PointerClick };
+            onClick.callback.AddListener((data) => ukmdInfo.SetActive(false));
 
             // add new triggers to ukmd button
-            ukmdTrigger.triggers.Add(showInfo);
-            ukmdTrigger.triggers.Add(hideInfo);
+            ukmdTrigger.triggers.Add(pointerEnter);
+            ukmdTrigger.triggers.Add(pointerExit);
+            ukmdTrigger.triggers.Add(onClick);
         }
     }
 }
