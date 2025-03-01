@@ -1,8 +1,8 @@
 {
     "name": "UKMDUnlocker",
-    "description": "Adds ULTRAKILL MUST DIE to the difficulty selection menu. made by whyis2plus2",
+    "description": "Adds ULTRAKILL MUST DIE to the difficulty selection menu.",
     "author": "whyis2plus2",
-    "version_number": "0.1.0",
+    "version_number": "0.1.1",
     "website_url": "",
     "dependencies": []
 }
