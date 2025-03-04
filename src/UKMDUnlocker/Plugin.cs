@@ -1,72 +1,75 @@
 ﻿namespace UKMDUnlocker;
 
 using BepInEx;
-using BepInEx.Bootstrap;
 using HarmonyLib;
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
+
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-/// <summary> Bootloader class needed to avoid destroying the mod by the game. </summary>
-[BepInPlugin("whyis2plus2.UKMDUnlocker", "UKMDUnlocker", "0.1.0")]
-public class PluginLoader : BaseUnityPlugin
+[BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
+public class Plugin : BaseUnityPlugin
 {
-    private void Awake() => SceneManager.sceneLoaded += (_, _) =>
+    // angry level loader does this, and I quite like it
+    public const string PLUGIN_GUID = "whyis2plus2.UKMDUnlocker";
+    public const string PLUGIN_NAME = "UKMDUnlocker";
+    public const string PLUGIN_VERSION = "0.1.2";
+
+    public static string DifficultyName => GameDifficulty.UKMD.GetDifficultyName();
+
+    /// <summary> keep track of the current instance of the plugin so that every part of the mod can use it if needed </summary>
+    public static Plugin Instance { get; private set; }
+
+    /// <summary> We need to have an instance of this in order to do patches </summary>
+    Harmony Harmony;
+
+    private void Awake()
     {
-        if (Plugin.Instance == null)
-        {
-            GameObject parent = new();
-            parent.transform.SetParent(null);
-            parent.AddComponent<Plugin>();
-        }
-    };
-}
+        Instance = this;
 
-/// <summary> Plugin main class. Essentially only initializes all other components. </summary>
-public class Plugin : MonoBehaviour
-{
-    /// <summary> Plugin instance available everywhere. </summary>
-    public static Plugin Instance;
-    /// <summary> Whether the plugin has been initialized. </summary>
-    public bool Initialized;
+        Harmony = new(PLUGIN_NAME);
+        SceneManager.activeSceneChanged += OnSceneChange;
 
-    private void Awake() {
-        DontDestroyOnLoad(Instance = this); // save the instance of the mod for later use and prevent it from being destroyed by the game
-        PrefsManager.Instance.propertyValidators.Clear();
-        SceneManager.activeSceneChanged += this.OnSceneChange;
+        // apply patch to PrefsManager
+        Harmony.Patch(
+	        typeof(PrefsManager).GetConstructor([]),
+            postfix: new(typeof(PrefsManagerPatch).GetMethod("Ctor_Postfix", AccessTools.all))
+        );
+
+        Logger.LogInfo("Loaded UKMDUnlocker");
     }
 
-    public void OnSceneChange(Scene _0, Scene _1)
+    private void OnSceneChange(Scene last, Scene current)
     {
         string titleSceneName = "b3e7f2f8052488a45b35549efb98d902";
-        string currentSceneName = SceneManager.GetActiveScene().name;
 
-        if (currentSceneName == titleSceneName)
+        if (current.name == titleSceneName)
         {
             // difficulty buttons and difficulty infos
             Transform interactables = (from obj in SceneManager.GetActiveScene().GetRootGameObjects() where obj.name == "Canvas" select obj)
-                .First<GameObject>().transform.Find("Difficulty Select (1)").Find("Interactables"); 
+                .First().transform.Find("Difficulty Select (1)").Find("Interactables"); 
 
             // clone the brutal button
             var ukmdButton = Instantiate(interactables.Find("Brutal").gameObject, interactables);
-            
             ukmdButton.GetComponent<DifficultySelectButton>().difficulty = 5;
-            ukmdButton.transform.Find("Name").GetComponent<TMP_Text>().text = "ULTRAKILL MUST DIE";
+            ukmdButton.transform.Find("Name").GetComponent<TMP_Text>().text = DifficultyName.ToUpper();
             ukmdButton.GetComponent<RectTransform>().position = new Vector2(30f, 157.5f);
-            ukmdButton.gameObject.SetActive(true);
+            ukmdButton.name = $"{PLUGIN_NAME} UKMD";
 
             // this won't stay disabled unfortunately, so we can just make it so small that we can't see it
             interactables.Find("V1 Must Die").localScale = new (0f, 0f, 0f);
 
             var ukmdInfo = Instantiate(interactables.Find("Brutal Info").gameObject, interactables);
-            var ukmdTitle = ukmdInfo.transform.Find("Title (1)").GetComponent<TMP_Text>();
+            ukmdInfo.name = $"{PLUGIN_NAME} UKMD Info";
 
-            // this is the largest font size that I can use without it being split
-            // into two lines
-            ukmdTitle.fontSize = 29;
-            ukmdTitle.text = "--ULTRAKILL MUST DIE--";
+            var ukmdTitle = ukmdInfo.transform.Find("Title (1)").GetComponent<TMP_Text>();
+            ukmdTitle.fontSize = 29 /* this is the largest font size that we can use without the text being split into more than one line */;
+            ukmdTitle.text = $"--{DifficultyName.ToUpper()}--";
 
             // set the description of UKMD
             ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text = 
@@ -100,6 +103,19 @@ public class Plugin : MonoBehaviour
             ukmdTrigger.triggers.Add(pointerEnter);
             ukmdTrigger.triggers.Add(pointerExit);
             ukmdTrigger.triggers.Add(onClick);
+
+            // add ukmd button to the button activation sequence
+            var activationSequence = interactables.GetComponent<ObjectActivateInSequence>();
+            activationSequence.objectsToActivate[14 /* index of ultrakill's ukmd button */] = ukmdButton;
         }
-    }
+    }   
 }
+
+static class PrefsManagerPatch {
+    // documentation comment because I hate when harmony patches go unexplained
+    /// <summary> Postfix that applies to the constructor of PrefsManager, esuring that no instance of said class does a bounds check for difficulty </summary>
+    static void Ctor_Postfix(ref Dictionary<string, Func<object, object>> ___propertyValidators)
+    {
+        ___propertyValidators.Remove("difficulty");
+    }
+};

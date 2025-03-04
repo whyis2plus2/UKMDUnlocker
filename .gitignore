@@ -1,5 +1,3 @@
 lib/*
 bin/*
 obj/*
-
-!lib/Assembly-CSharp_publicized.dll
