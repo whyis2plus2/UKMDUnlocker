@@ -26,21 +26,16 @@ public class Plugin : BaseUnityPlugin
     public static Plugin Instance { get; private set; }
 
     /// <summary> We need to have an instance of this in order to do patches </summary>
-    Harmony Harmony;
+    Harmony Harmony = new(PLUGIN_GUID);
 
     private void Awake()
     {
         Instance = this;
 
-        Harmony = new(PLUGIN_NAME);
         SceneManager.activeSceneChanged += OnSceneChange;
 
-        // apply patch to PrefsManager
-        Harmony.Patch(
-	        typeof(PrefsManager).GetConstructor([]),
-            postfix: new(typeof(PrefsManagerPatch).GetMethod("Ctor_Postfix", AccessTools.all))
-        );
-
+        Logger.LogInfo("Loading UKMDUnlocker");
+        Harmony.PatchAll();
         Logger.LogInfo("Loaded UKMDUnlocker");
     }
 
@@ -111,9 +106,12 @@ public class Plugin : BaseUnityPlugin
     }   
 }
 
+[HarmonyPatch(typeof(PrefsManager))]
 static class PrefsManagerPatch {
     // documentation comment because I hate when harmony patches go unexplained
     /// <summary> Postfix that applies to the constructor of PrefsManager, esuring that no instance of said class does a bounds check for difficulty </summary>
+    [HarmonyPostfix]
+    [HarmonyPatch(MethodType.Constructor)]
     static void Ctor_Postfix(ref Dictionary<string, Func<object, object>> ___propertyValidators)
     {
         ___propertyValidators.Remove("difficulty");
