@@ -20,7 +20,7 @@ public class Plugin : BaseUnityPlugin
     public const string PLUGIN_NAME = "UKMDUnlocker";
     public const string PLUGIN_VERSION = "0.1.2";
 
-    public static string DifficultyName => GameDifficulty.UKMD.GetDifficultyName();
+    public static readonly string DifficultyName = GameDifficulty.UKMD.GetDifficultyName();
 
     /// <summary> keep track of the current instance of the plugin so that every part of the mod can use it if needed </summary>
     public static Plugin Instance { get; private set; }
@@ -61,9 +61,6 @@ public class Plugin : BaseUnityPlugin
             ukmdButton.GetComponent<RectTransform>().position = new Vector2(30f, 157.5f);
             ukmdButton.name = $"{PLUGIN_NAME} UKMD";
 
-            // this won't stay disabled unfortunately, so we can just make it so small that we can't see it
-            interactables.Find("V1 Must Die").localScale = new (0f, 0f, 0f);
-
             var ukmdInfo = Instantiate(interactables.Find("Brutal Info").gameObject, interactables);
             ukmdInfo.name = $"{PLUGIN_NAME} UKMD Info";
 
@@ -78,7 +75,7 @@ public class Plugin : BaseUnityPlugin
 
                 Quick reflexes and extensive knowledge of the game are expected. Any mistake made is likely to be deadly.</color>
 
-                <b>Recommended only for those who are worthy.</b>
+                <b>Recommended for players who have achieved near mastery over the game and are looking for a final challenge.</b>
                 """;
 
             // the event triggers that the button uses to show/hide its description
@@ -107,6 +104,9 @@ public class Plugin : BaseUnityPlugin
             // add ukmd button to the button activation sequence
             var activationSequence = interactables.GetComponent<ObjectActivateInSequence>();
             activationSequence.objectsToActivate[14 /* index of ultrakill's ukmd button */] = ukmdButton;
+
+            // deactivate the normal ukmd button so that it doesn't get in the way
+            interactables.Find("V1 Must Die").gameObject.SetActive(false);
         }
     }   
 }
