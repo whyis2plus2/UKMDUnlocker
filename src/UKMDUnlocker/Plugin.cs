@@ -1,6 +1,5 @@
 ﻿namespace UKMDUnlocker;
 
-using BananaDifficulty;
 using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
@@ -15,6 +14,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
+using BananaDifficulty;
+
 [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
@@ -26,45 +27,12 @@ public class Plugin : BaseUnityPlugin
     public static readonly string DifficultyName = GameDifficulty.UKMD.GetDifficultyName();
 
     /// <summary> keep track of the current instance of the plugin so that every part of the mod can use it if needed </summary>
-    public static Plugin Instance { get; private set; }
+    public static Plugin Instance { private set; get; }
 
-    public static bool HasBananaDifficulty { private get; set; } = false;
+    public static bool HasBananaDifficulty { private set; get; } = false;
 
     /// <summary> We need to have an instance of this in order to do patches </summary>
-	readonly Harmony Harmony = new(PLUGIN_GUID);
-
-    public bool RealAllowBananaDifficulty { get; private set; } = false;
-    public bool AllowBananaDifficulty
-    {
-        set
-        {
-            if (!HasBananaDifficulty) return;
-
-            RealAllowBananaDifficulty = value;
-            Log.LogInfo($"AllowBananaDifficulty set to {value}");
-
-            if (value)
-            {
-                Log.LogInfo("Enabling bananas difficulty");
-                Harmony.Unpatch(
-                    typeof(BananaDifficulty.BananaDifficultyPlugin).GetMethod(nameof(BananaDifficulty.BananaDifficultyPlugin.CanUseIt), AccessTools.all),
-                    typeof(BananaDifficultyPlugin_Patch).GetMethod("CanUseIt", AccessTools.all)
-                );
-                return;
-            }
-
-            Log.LogInfo("Disabling bananas difficulty");
-            Harmony.Patch(
-                typeof(BananaDifficulty.BananaDifficultyPlugin).GetMethod(nameof(BananaDifficulty.BananaDifficultyPlugin.CanUseIt), AccessTools.all),
-                postfix: new(typeof(BananaDifficultyPlugin_Patch).GetMethod("CanUseIt", AccessTools.all))
-            );
-        }
-
-        get
-        {
-            return RealAllowBananaDifficulty;
-        }
-    }
+	public static readonly Harmony Harmony = new(PLUGIN_GUID);
 
     public static ManualLogSource Log;
 
@@ -134,7 +102,7 @@ public class Plugin : BaseUnityPlugin
             EventTrigger.Entry onClick = new() { eventID = EventTriggerType.PointerClick };
             onClick.callback.AddListener((data) =>
             {
-                AllowBananaDifficulty = false;
+                BananaDifficultyManager.Enabled = false;
                 ukmdInfo.SetActive(false);
             });
 
@@ -151,27 +119,10 @@ public class Plugin : BaseUnityPlugin
             interactables.Find("V1 Must Die").gameObject.SetActive(false);
 
             // if banana difficulty is avaliable, then make that we re-enable it
-            if (HasBananaDifficulty) {
-                Log.LogInfo("Adding trigger to bananas difficulty");
-                var bananaTrigger = interactables.Find("Brutal(Clone)").GetComponent<EventTrigger>();
-
-                EventTrigger.Entry repatchBanana = new() { eventID = EventTriggerType.PointerClick };
-                repatchBanana.callback.AddListener((data) => { AllowBananaDifficulty = true; });
-                bananaTrigger.triggers.Add(repatchBanana);
-            }
+            BananaDifficultyManager.AddTriggers(interactables);
         }
     }   
 }
-
-[HarmonyPatch(typeof(BananaDifficultyPlugin))]
-static class BananaDifficultyPlugin_Patch {
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(BananaDifficultyPlugin.CanUseIt))]
-    static void CanUseIt(ref bool __result)
-    {
-        __result = false;
-    }
-};
 
 [HarmonyPatch(typeof(PrefsManager))]
 static class PrefsManager_Patch {
