@@ -11,12 +11,14 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
 1. Create a folder called "lib" in the root directory of the mod code
 2. Add the following to it:
   - From BepInEx/core add:
-      * BepInEx.dll
-      * 0Harmony.dll
+    * BepInEx.dll
+    * 0Harmony.dll
   - From ULTRAKILL_Data/Managed add:
-      * Assembly-CSharp.dll
-      * Unity.TextMeshPro.dll
-      * UnityEngine.UI.dll
+    * Assembly-CSharp.dll
+    * Unity.TextMeshPro.dll
+    * UnityEngine.UI.dll
+  - From [BananasDifficulty](https://thunderstore.io/c/ultrakill/p/bananastudio/BananasDifficulty/)
+    * BananaDifficulty.dll
 
 3. run "dotnet build"
 

@@ -1,6 +1,9 @@
 ﻿namespace UKMDUnlocker;
 
+using BananaDifficulty;
 using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Logging;
 using HarmonyLib;
 
 using System;
@@ -25,18 +28,58 @@ public class Plugin : BaseUnityPlugin
     /// <summary> keep track of the current instance of the plugin so that every part of the mod can use it if needed </summary>
     public static Plugin Instance { get; private set; }
 
+    public static bool HasBananaDifficulty { private get; set; } = false;
+
     /// <summary> We need to have an instance of this in order to do patches </summary>
-    Harmony Harmony = new(PLUGIN_GUID);
+	readonly Harmony Harmony = new(PLUGIN_GUID);
+
+    public bool RealAllowBananaDifficulty { get; private set; } = false;
+    public bool AllowBananaDifficulty
+    {
+        set
+        {
+            if (!HasBananaDifficulty) return;
+
+            RealAllowBananaDifficulty = value;
+            Log.LogInfo($"AllowBananaDifficulty set to {value}");
+
+            if (value)
+            {
+                Log.LogInfo("Enabling bananas difficulty");
+                Harmony.Unpatch(
+                    typeof(BananaDifficulty.BananaDifficultyPlugin).GetMethod(nameof(BananaDifficulty.BananaDifficultyPlugin.CanUseIt), AccessTools.all),
+                    typeof(BananaDifficultyPlugin_Patch).GetMethod("CanUseIt", AccessTools.all)
+                );
+                return;
+            }
+
+            Log.LogInfo("Disabling bananas difficulty");
+            Harmony.Patch(
+                typeof(BananaDifficulty.BananaDifficultyPlugin).GetMethod(nameof(BananaDifficulty.BananaDifficultyPlugin.CanUseIt), AccessTools.all),
+                postfix: new(typeof(BananaDifficultyPlugin_Patch).GetMethod("CanUseIt", AccessTools.all))
+            );
+        }
+
+        get
+        {
+            return RealAllowBananaDifficulty;
+        }
+    }
+
+    public static ManualLogSource Log;
 
     private void Awake()
     {
+        Log = Logger;
         Instance = this;
+        HasBananaDifficulty = Chainloader.PluginInfos.ContainsKey("com.michi.BananaDifficulty");
 
         SceneManager.activeSceneChanged += OnSceneChange;
 
-        Logger.LogInfo("Loading UKMDUnlocker");
+        Log.LogInfo("Loading UKMDUnlocker");
+        if (HasBananaDifficulty) Log.LogInfo("Detected BananasDifficulty");
         Harmony.PatchAll();
-        Logger.LogInfo("Loaded UKMDUnlocker");
+        Log.LogInfo("Loaded UKMDUnlocker");
     }
 
     private void OnSceneChange(Scene last, Scene current)
@@ -89,7 +132,11 @@ public class Plugin : BaseUnityPlugin
 
             // hide ukmd info when clicked
             EventTrigger.Entry onClick = new() { eventID = EventTriggerType.PointerClick };
-            onClick.callback.AddListener((data) => ukmdInfo.SetActive(false));
+            onClick.callback.AddListener((data) =>
+            {
+                AllowBananaDifficulty = false;
+                ukmdInfo.SetActive(false);
+            });
 
             // add new triggers to ukmd button
             ukmdTrigger.triggers.Add(pointerEnter);
@@ -102,12 +149,32 @@ public class Plugin : BaseUnityPlugin
 
             // deactivate the normal ukmd button so that it doesn't get in the way
             interactables.Find("V1 Must Die").gameObject.SetActive(false);
+
+            // if banana difficulty is avaliable, then make that we re-enable it
+            if (HasBananaDifficulty) {
+                Log.LogInfo("Adding trigger to bananas difficulty");
+                var bananaTrigger = interactables.Find("Brutal(Clone)").GetComponent<EventTrigger>();
+
+                EventTrigger.Entry repatchBanana = new() { eventID = EventTriggerType.PointerClick };
+                repatchBanana.callback.AddListener((data) => { AllowBananaDifficulty = true; });
+                bananaTrigger.triggers.Add(repatchBanana);
+            }
         }
     }   
 }
 
+[HarmonyPatch(typeof(BananaDifficultyPlugin))]
+static class BananaDifficultyPlugin_Patch {
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(BananaDifficultyPlugin.CanUseIt))]
+    static void CanUseIt(ref bool __result)
+    {
+        __result = false;
+    }
+};
+
 [HarmonyPatch(typeof(PrefsManager))]
-static class PrefsManagerPatch {
+static class PrefsManager_Patch {
     // documentation comment because I hate when harmony patches go unexplained
     /// <summary> Postfix that applies to the constructor of PrefsManager, esuring that no instance of said class does a bounds check for difficulty </summary>
     [HarmonyPostfix]
