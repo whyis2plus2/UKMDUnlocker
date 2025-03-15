@@ -17,7 +17,6 @@ public static class BananaDifficultyManager {
         set
         {
             realEnabled = value;
-            Plugin.Log.LogInfo($"AllowBananaDifficulty set to {value}");
 
             if (value)
             {
