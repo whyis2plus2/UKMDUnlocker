@@ -111,7 +111,7 @@ public class Plugin : BaseUnityPlugin
             EventTrigger.Entry onClick = new() { eventID = EventTriggerType.PointerClick };
             onClick.callback.AddListener((data) =>
             {
-                BananaDifficultyManager.Enabled = false;
+                if (HasBananaDifficulty) BananaDifficultyManager.Enabled = false;
                 ukmdInfo.SetActive(false);
             });
 
@@ -128,7 +128,7 @@ public class Plugin : BaseUnityPlugin
             interactables.Find("V1 Must Die").gameObject.SetActive(false);
 
             // if banana difficulty is avaliable then make any neccessary tweaks to its button and 
-            BananaDifficultyManager.ModifyButton(interactables);
+            if (HasBananaDifficulty) BananaDifficultyManager.ModifyButton(interactables);
         }
     }   
 }

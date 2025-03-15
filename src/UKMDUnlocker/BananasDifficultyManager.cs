@@ -16,8 +16,6 @@ public static class BananaDifficultyManager {
     {
         set
         {
-            if (!Plugin.HasBananaDifficulty) return;
-
             realEnabled = value;
             Plugin.Log.LogInfo($"AllowBananaDifficulty set to {value}");
 
@@ -66,8 +64,6 @@ public static class BananaDifficultyManager {
 
     public static void ModifyButton(Transform parent)
     {
-        if (!Plugin.HasBananaDifficulty) return;
-
         Plugin.Log.LogInfo("Adding trigger to bananas difficulty");
         var bananaTrigger = parent.Find("Brutal(Clone)").GetComponent<EventTrigger>();
         var bananaInfo = parent.Find("Brutal Info(Clone)");
