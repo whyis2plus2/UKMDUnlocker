@@ -14,8 +14,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-using BananaDifficulty;
-
 [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
@@ -25,9 +23,6 @@ public class Plugin : BaseUnityPlugin
     public const string PLUGIN_VERSION = "0.1.2";
 
     public static readonly string DifficultyName = GameDifficulty.UKMD.GetDifficultyName();
-
-    /// <summary> keep track of the current instance of the plugin so that every part of the mod can use it if needed </summary>
-    public static Plugin Instance { private set; get; }
 
     public static bool HasBananaDifficulty { private set; get; } = false;
 
@@ -39,14 +34,22 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        Instance = this;
         HasBananaDifficulty = Chainloader.PluginInfos.ContainsKey("com.michi.BananaDifficulty");
 
         SceneManager.activeSceneChanged += OnSceneChange;
 
         Log.LogInfo("Loading UKMDUnlocker");
-        if (HasBananaDifficulty) Log.LogInfo("Detected BananasDifficulty");
-        Harmony.PatchAll();
+        if (HasBananaDifficulty)
+        {
+            Log.LogInfo("Detected BananasDifficulty");
+            BananaDifficultyManager.Enabled = true;
+        }
+
+        Harmony.Patch(
+            typeof(PrefsManager).GetConstructor(new Type[0]),
+            postfix: new(typeof(PrefsManager_Ctor_Patch).GetMethod("Postfix", AccessTools.all))
+        );
+
         Log.LogInfo("Loaded UKMDUnlocker");
     }
 
@@ -84,6 +87,12 @@ public class Plugin : BaseUnityPlugin
                 <b>Recommended for players who have achieved near mastery over the game and are looking for a final challenge.</b>
                 """;
 
+            // give the user notice about stuff
+            if (HasBananaDifficulty)
+                ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text +=
+                    "\n\n<color=yellow>Due to technical reasons, this uses the same save slot as Bananas Difficulty</color>";
+
+
             // the event triggers that the button uses to show/hide its description
             var ukmdTrigger = ukmdButton.GetComponent<EventTrigger>();
 
@@ -118,19 +127,17 @@ public class Plugin : BaseUnityPlugin
             // deactivate the normal ukmd button so that it doesn't get in the way
             interactables.Find("V1 Must Die").gameObject.SetActive(false);
 
-            // if banana difficulty is avaliable, then make that we re-enable it
-            BananaDifficultyManager.AddTriggers(interactables);
+            // if banana difficulty is avaliable then make any neccessary tweaks to its button and 
+            BananaDifficultyManager.ModifyButton(interactables);
         }
     }   
 }
 
-[HarmonyPatch(typeof(PrefsManager))]
-static class PrefsManager_Patch {
+[HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
+static class PrefsManager_Ctor_Patch {
     // documentation comment because I hate when harmony patches go unexplained
     /// <summary> Postfix that applies to the constructor of PrefsManager, esuring that no instance of said class does a bounds check for difficulty </summary>
-    [HarmonyPostfix]
-    [HarmonyPatch(MethodType.Constructor)]
-    static void Ctor_Postfix(ref Dictionary<string, Func<object, object>> ___propertyValidators)
+    static void Postfix(ref Dictionary<string, Func<object, object>> ___propertyValidators)
     {
         ___propertyValidators.Remove("difficulty");
     }
