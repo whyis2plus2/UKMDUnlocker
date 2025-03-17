@@ -18,7 +18,7 @@ using UnityEngine.SceneManagement;
 public class Plugin : BaseUnityPlugin
 {
     // angry level loader does this, and I quite like it
-    public const string PLUGIN_GUID = "whyis2plus2.UKMDUnlocker";
+    public const string PLUGIN_GUID = "com.whyis2plus2.UKMDUnlocker";
     public const string PLUGIN_NAME = "UKMDUnlocker";
     public const string PLUGIN_VERSION = "0.2.0";
 
