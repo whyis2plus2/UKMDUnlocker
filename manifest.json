@@ -3,6 +3,8 @@
     "description": "Adds ULTRAKILL MUST DIE to the difficulty selection menu.",
     "author": "whyis2plus2",
     "version_number": "0.2.0",
-    "website_url": "",
-    "dependencies": []
+    "website_url": "https://github.com/whyis2plus2/UKMDUnlocker/",
+    "dependencies": [
+        "BepInEx-BepInExPack-5.4.2100"
+    ]
 }
