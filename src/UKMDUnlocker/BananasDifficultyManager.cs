@@ -9,7 +9,8 @@ using UnityEngine;
 
 using BananaDifficulty;
 
-public static class BananaDifficultyManager { 
+public static class BananaDifficultyManager
+{ 
     private static bool realEnabled = false;
 	public static bool Enabled
     {
@@ -74,15 +75,14 @@ public static class BananaDifficultyManager {
         bananaTrigger.triggers.Add(repatchBanana);
     }
 
-	[HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
-	static class BananaDifficultyPlugin_CanUseIt_Patch {
+	static class BananaDifficultyPlugin_CanUseIt_Patch
+    {
         static void Postfix(ref bool __result)
         {
             __result = false;
         }
 	};
     
-    [HarmonyPatch(typeof(DiscordController), "SendActivity")]
     static class DiscordController_SendActivity_Patch
     {
         static void Prefix(ref Activity ___cachedActivity)

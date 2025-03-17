@@ -52,19 +52,19 @@ public class Plugin : BaseUnityPlugin
             BananaDifficultyManager.Enabled = true;
         }
 
-        Harmony.Patch(
-            typeof(PrefsManager).GetConstructor(new Type[0]),
-            postfix: new(typeof(PrefsManager_Ctor_Patch).GetMethod("Postfix", AccessTools.all))
-        );
-
-        LeaderboardProperties.Difficulties[5] = "UKMD";
-
+        Harmony.PatchAll();
         Log.LogInfo("Loaded UKMDUnlocker");
     }
 
     private void OnSceneChange(Scene last, Scene current)
     {
-        if (current.name != MAIN_MENU_NAME) return;
+        if (current.name != MAIN_MENU_NAME)
+        {
+            LeaderboardProperties.Difficulties[5] = DifficultyName;
+            return;
+        }
+
+        LeaderboardProperties.Difficulties[5] = "UKMD";
 
         Log.LogInfo("Detected Main Menu Scene");
 
@@ -154,7 +154,8 @@ public class Plugin : BaseUnityPlugin
 }
 
 [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
-static class PrefsManager_Ctor_Patch {
+static class PrefsManager_Ctor_Patch
+{
     // documentation comment because I hate when harmony patches go unexplained
     /// <summary> Postfix that applies to the constructor of PrefsManager, esuring that no instance of said class does a bounds check for difficulty </summary>
     static void Postfix(ref Dictionary<string, Func<object, object>> ___propertyValidators)
