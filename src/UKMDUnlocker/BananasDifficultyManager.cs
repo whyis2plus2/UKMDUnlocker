@@ -1,14 +1,13 @@
 namespace UKMDUnlocker;
 
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 
-using BananaDifficulty;
-using UnityEngine.EventSystems;
-using UnityEngine;
 using Discord;
 using TMPro;
+using UnityEngine.EventSystems;
+using UnityEngine;
+
+using BananaDifficulty;
 
 public static class BananaDifficultyManager { 
     private static bool realEnabled = false;
@@ -61,14 +60,14 @@ public static class BananaDifficultyManager {
         }
     }
 
-    public static void ModifyButton(Transform parent)
+    public static void ModifyButton()
     {
         Plugin.Log.LogInfo("Adding trigger to bananas difficulty");
-        var bananaTrigger = parent.Find("Brutal(Clone)").GetComponent<EventTrigger>();
-        var bananaInfo = parent.Find("Brutal Info(Clone)");
+        var bananaTrigger = Plugin.Interactables.Find("Brutal(Clone)").GetComponent<EventTrigger>();
+        var bananaInfo = Plugin.Interactables.Find("Brutal Info(Clone)");
 
         bananaInfo.Find("Text").GetComponent<TMP_Text>().text += 
-            "\n\n<color=yellow>Due to technical reasons, this uses the same save slot as ULTRAKILL MUST DIE</color>";
+            $"\n\n<color=yellow>Due to technical reasons, this uses the same save slot as {Plugin.DifficultyName}</color>";
 
         EventTrigger.Entry repatchBanana = new() { eventID = EventTriggerType.PointerClick };
         repatchBanana.callback.AddListener((data) => Enabled = true);

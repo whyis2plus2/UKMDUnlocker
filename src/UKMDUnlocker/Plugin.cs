@@ -22,6 +22,13 @@ public class Plugin : BaseUnityPlugin
     public const string PLUGIN_NAME = "UKMDUnlocker";
     public const string PLUGIN_VERSION = "0.1.2";
 
+
+    /// <summary> The scene ID of the main menu </summary>
+    private const string MAIN_MENU_NAME = "b3e7f2f8052488a45b35549efb98d902";
+
+    /// <summary> The "interactable" components of the difficulty select menu (mostly just difficulty buttons and infos) </summary>
+    public static Transform Interactables {private set; get;}
+
     public static readonly string DifficultyName = GameDifficulty.UKMD.GetDifficultyName();
 
     public static bool HasBananaDifficulty { private set; get; } = false;
@@ -50,87 +57,98 @@ public class Plugin : BaseUnityPlugin
             postfix: new(typeof(PrefsManager_Ctor_Patch).GetMethod("Postfix", AccessTools.all))
         );
 
+        LeaderboardProperties.Difficulties[5] = "UKMD";
+
         Log.LogInfo("Loaded UKMDUnlocker");
     }
 
     private void OnSceneChange(Scene last, Scene current)
     {
-        string titleSceneName = "b3e7f2f8052488a45b35549efb98d902";
+        if (current.name != MAIN_MENU_NAME) return;
 
-        if (current.name == titleSceneName)
+        Log.LogInfo("Detected Main Menu Scene");
+
+        var canvas = (from obj in current.GetRootGameObjects() where obj.name == "Canvas" select obj.transform).First();
+
+        // difficulty buttons and difficulty infos
+        Interactables = canvas.Find("Difficulty Select (1)").Find("Interactables");
+
+        // create the new UKMD button and Info
+        AddButton();
+
+        // if banana difficulty is avaliable then make any neccessary tweaks to its button and info
+        if (HasBananaDifficulty) BananaDifficultyManager.ModifyButton();
+    }
+
+    /// <summary> Add the UKMD button and info to the difficulty select menu </summary>
+    private void AddButton()
+    {
+        Log.LogInfo("Adding UKMD Button");
+
+        // clone the brutal button
+        var ukmdButton = Instantiate(Interactables.Find("Brutal").gameObject, Interactables);
+        ukmdButton.GetComponent<DifficultySelectButton>().difficulty = 5;
+        ukmdButton.transform.Find("Name").GetComponent<TMP_Text>().text = DifficultyName.ToUpper();
+        ukmdButton.GetComponent<RectTransform>().position = new Vector2(30f, 157.5f);
+        ukmdButton.name = $"{PLUGIN_NAME} UKMD";
+
+        var ukmdInfo = Instantiate(Interactables.Find("Brutal Info").gameObject, Interactables);
+        ukmdInfo.name = $"{PLUGIN_NAME} UKMD Info";
+
+        var ukmdTitle = ukmdInfo.transform.Find("Title (1)").GetComponent<TMP_Text>();
+        ukmdTitle.fontSize = 29 /* this is the largest font size that we can use without the text being split into more than one line */;
+        ukmdTitle.text = $"--{DifficultyName.ToUpper()}--";
+
+        // set the description of UKMD
+        ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text = 
+            """
+            <color=white>Extremely aggressive enemies and very high damage.
+
+            Quick reflexes and extensive knowledge of the game are expected. Any mistake made is likely to be deadly.</color>
+
+            <b>Recommended for players who have achieved near mastery over the game and are looking for a final challenge.</b>
+            """;
+
+        // give the user notice about stuff
+        if (HasBananaDifficulty)
+            ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text +=
+                "\n\n<color=yellow>Due to technical reasons, this uses the same save slot as Bananas Difficulty</color>";
+
+
+        // the event triggers that the button uses to show/hide its description
+        var ukmdTrigger = ukmdButton.GetComponent<EventTrigger>();
+
+        // remove old triggers because those use Brutal's description instead of UKMD's description
+        ukmdTrigger.triggers.Clear();
+        
+        // show ukmd info on mouse hover
+        EventTrigger.Entry pointerEnter = new() { eventID = EventTriggerType.PointerEnter };
+        pointerEnter.callback.AddListener((data) => ukmdInfo.SetActive(true));
+
+        // hide ukmd info on mouse exit
+        EventTrigger.Entry pointerExit = new() { eventID = EventTriggerType.PointerExit };
+        pointerExit.callback.AddListener((data) => ukmdInfo.SetActive(false));
+
+        // hide ukmd info when clicked
+        EventTrigger.Entry onClick = new() { eventID = EventTriggerType.PointerClick };
+        onClick.callback.AddListener((data) =>
         {
-            // difficulty buttons and difficulty infos
-            Transform interactables = (from obj in SceneManager.GetActiveScene().GetRootGameObjects() where obj.name == "Canvas" select obj)
-                .First().transform.Find("Difficulty Select (1)").Find("Interactables"); 
+            if (HasBananaDifficulty) BananaDifficultyManager.Enabled = false;
+            ukmdInfo.SetActive(false);
+        });
 
-            // clone the brutal button
-            var ukmdButton = Instantiate(interactables.Find("Brutal").gameObject, interactables);
-            ukmdButton.GetComponent<DifficultySelectButton>().difficulty = 5;
-            ukmdButton.transform.Find("Name").GetComponent<TMP_Text>().text = DifficultyName.ToUpper();
-            ukmdButton.GetComponent<RectTransform>().position = new Vector2(30f, 157.5f);
-            ukmdButton.name = $"{PLUGIN_NAME} UKMD";
+        // add new triggers to ukmd button
+        ukmdTrigger.triggers.Add(pointerEnter);
+        ukmdTrigger.triggers.Add(pointerExit);
+        ukmdTrigger.triggers.Add(onClick);
 
-            var ukmdInfo = Instantiate(interactables.Find("Brutal Info").gameObject, interactables);
-            ukmdInfo.name = $"{PLUGIN_NAME} UKMD Info";
+        // add ukmd button to the button activation sequence
+        var activationSequence = Interactables.GetComponent<ObjectActivateInSequence>();
+        activationSequence.objectsToActivate[14 /* index of vanilla ukmd button */] = ukmdButton;
 
-            var ukmdTitle = ukmdInfo.transform.Find("Title (1)").GetComponent<TMP_Text>();
-            ukmdTitle.fontSize = 29 /* this is the largest font size that we can use without the text being split into more than one line */;
-            ukmdTitle.text = $"--{DifficultyName.ToUpper()}--";
-
-            // set the description of UKMD
-            ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text = 
-                """
-                <color=white>Extremely aggressive enemies and very high damage.
-
-                Quick reflexes and extensive knowledge of the game are expected. Any mistake made is likely to be deadly.</color>
-
-                <b>Recommended for players who have achieved near mastery over the game and are looking for a final challenge.</b>
-                """;
-
-            // give the user notice about stuff
-            if (HasBananaDifficulty)
-                ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text +=
-                    "\n\n<color=yellow>Due to technical reasons, this uses the same save slot as Bananas Difficulty</color>";
-
-
-            // the event triggers that the button uses to show/hide its description
-            var ukmdTrigger = ukmdButton.GetComponent<EventTrigger>();
-
-            // remove old triggers because those use Brutal's description instead of UKMD's description
-            ukmdTrigger.triggers.Clear();
-            
-            // show ukmd info on mouse hover
-            EventTrigger.Entry pointerEnter = new() { eventID = EventTriggerType.PointerEnter };
-            pointerEnter.callback.AddListener((data) => ukmdInfo.SetActive(true));
-
-            // hide ukmd info on mouse exit
-            EventTrigger.Entry pointerExit = new() { eventID = EventTriggerType.PointerExit };
-            pointerExit.callback.AddListener((data) => ukmdInfo.SetActive(false));
-
-            // hide ukmd info when clicked
-            EventTrigger.Entry onClick = new() { eventID = EventTriggerType.PointerClick };
-            onClick.callback.AddListener((data) =>
-            {
-                if (HasBananaDifficulty) BananaDifficultyManager.Enabled = false;
-                ukmdInfo.SetActive(false);
-            });
-
-            // add new triggers to ukmd button
-            ukmdTrigger.triggers.Add(pointerEnter);
-            ukmdTrigger.triggers.Add(pointerExit);
-            ukmdTrigger.triggers.Add(onClick);
-
-            // add ukmd button to the button activation sequence
-            var activationSequence = interactables.GetComponent<ObjectActivateInSequence>();
-            activationSequence.objectsToActivate[14 /* index of ultrakill's ukmd button */] = ukmdButton;
-
-            // deactivate the normal ukmd button so that it doesn't get in the way
-            interactables.Find("V1 Must Die").gameObject.SetActive(false);
-
-            // if banana difficulty is avaliable then make any neccessary tweaks to its button and 
-            if (HasBananaDifficulty) BananaDifficultyManager.ModifyButton(interactables);
-        }
-    }   
+        // deactivate the normal ukmd button so that it doesn't get in the way
+        Interactables.Find("V1 Must Die").gameObject.SetActive(false);
+    }
 }
 
 [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
