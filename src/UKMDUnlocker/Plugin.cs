@@ -20,7 +20,7 @@ public class Plugin : BaseUnityPlugin
     // angry level loader does this, and I quite like it
     public const string PLUGIN_GUID = "whyis2plus2.UKMDUnlocker";
     public const string PLUGIN_NAME = "UKMDUnlocker";
-    public const string PLUGIN_VERSION = "0.1.2";
+    public const string PLUGIN_VERSION = "0.2.0";
 
 
     /// <summary> The scene ID of the main menu </summary>
@@ -90,7 +90,7 @@ public class Plugin : BaseUnityPlugin
         ukmdButton.GetComponent<DifficultySelectButton>().difficulty = 5;
         ukmdButton.transform.Find("Name").GetComponent<TMP_Text>().text = DifficultyName.ToUpper();
         ukmdButton.GetComponent<RectTransform>().position = new Vector2(30f, 157.5f);
-        ukmdButton.name = $"{PLUGIN_NAME} UKMD";
+        ukmdButton.name = $"{PLUGIN_NAME} UKMD Button";
 
         var ukmdInfo = Instantiate(Interactables.Find("Brutal Info").gameObject, Interactables);
         ukmdInfo.name = $"{PLUGIN_NAME} UKMD Info";
@@ -102,11 +102,13 @@ public class Plugin : BaseUnityPlugin
         // set the description of UKMD
         ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text = 
             """
-            <color=white>Extremely aggressive enemies and very high damage.
+            <color=yellow>The unfinished version of UKMD in the game's files.</color>
 
-            Quick reflexes and extensive knowledge of the game are expected. Any mistake made is likely to be deadly.</color>
+            <color=white>Fast and extremely aggresive enemies with very high damage.
 
-            <b>Recommended for players who have achieved near mastery over the game and are looking for a final challenge.</b>
+            Quick thinking and a full arsenal are expected. Slip-ups are often fatal.</color>
+
+            <b>Recommended for players who have achieved near mastery over the game and are looking for a fitting challenge.</b>
             """;
 
         // give the user notice about stuff
