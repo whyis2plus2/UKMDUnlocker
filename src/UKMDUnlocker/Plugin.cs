@@ -23,8 +23,11 @@ public class Plugin : BaseUnityPlugin
     public const string PLUGIN_VERSION = "0.2.1";
 
 
-    /// <summary> The scene ID of the main menu </summary>
+    /// <summary> The scene name of the main menu </summary>
     private const string MAIN_MENU_NAME = "b3e7f2f8052488a45b35549efb98d902";
+
+    /// <summary> The scene name of the startup sequence/new save intro </summary>
+    private const string INTRO_NAME = "4f8ecffaa98c2614f89922daf31fa22d";
 
     /// <summary> The "interactable" components of the difficulty select menu (mostly just difficulty buttons and infos) </summary>
     public static Transform Interactables {private set; get;}
@@ -58,20 +61,15 @@ public class Plugin : BaseUnityPlugin
 
     private void OnSceneChange(Scene last, Scene current)
     {
-        if (current.name != MAIN_MENU_NAME)
-        {
-            LeaderboardProperties.Difficulties[5] = DifficultyName;
-            return;
-        }
-
-        LeaderboardProperties.Difficulties[5] = "UKMD";
-
-        Log.LogInfo("Detected Main Menu Scene");
+        LeaderboardProperties.Difficulties[5] = (current.name == MAIN_MENU_NAME)? "UKMD" : DifficultyName;
+        if (current.name is not MAIN_MENU_NAME and not INTRO_NAME) return;
 
         var canvas = (from obj in current.GetRootGameObjects() where obj.name == "Canvas" select obj.transform).First();
 
         // difficulty buttons and difficulty infos
-        Interactables = canvas.Find("Difficulty Select (1)").Find("Interactables");
+        Interactables = (current.name == MAIN_MENU_NAME)
+            ?canvas.Find("Difficulty Select (1)").Find("Interactables")
+            :canvas.Find("Intro").Find("Difficulty Select").Find("Interactables");
 
         // create the new UKMD button and Info
         AddButton();
@@ -94,6 +92,10 @@ public class Plugin : BaseUnityPlugin
         ukmdButton.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = DifficultyName.ToUpper();
         ukmdButton.transform.position = realUKMD.position;
         ukmdButton.name = $"{PLUGIN_NAME} UKMD Button";
+
+        // set the size of the UKMD button to zero
+        // I can't disable this because the intro scene doesn't allow it
+        realUKMD.localScale = Vector3.zero;
 
         var ukmdInfo = Instantiate(Interactables.Find("Brutal Info").gameObject, Interactables);
         ukmdInfo.name = $"{PLUGIN_NAME} UKMD Info";
@@ -150,9 +152,6 @@ public class Plugin : BaseUnityPlugin
         // add ukmd button to the button activation sequence
         var activationSequence = Interactables.GetComponent<ObjectActivateInSequence>();
         activationSequence.objectsToActivate[14 /* index of vanilla ukmd button */] = ukmdButton;
-
-        // deactivate the normal ukmd button so that it doesn't get in the way
-        realUKMD.gameObject.SetActive(false);
     }
 }
 
