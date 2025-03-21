@@ -67,7 +67,7 @@ public static class BananaDifficultyManager
         var bananaTrigger = Plugin.Interactables.Find("Brutal(Clone)").GetComponent<EventTrigger>();
         var bananaInfo = Plugin.Interactables.Find("Brutal Info(Clone)");
 
-        bananaInfo.Find("Text").GetComponent<TMP_Text>().text += 
+        bananaInfo.Find("Text").GetComponent<TextMeshProUGUI>().text += 
             $"\n\n<color=yellow>Due to technical reasons, this uses the same save slot as {Plugin.DifficultyName}</color>";
 
         EventTrigger.Entry repatchBanana = new() { eventID = EventTriggerType.PointerClick };

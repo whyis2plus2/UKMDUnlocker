@@ -85,22 +85,25 @@ public class Plugin : BaseUnityPlugin
     {
         Log.LogInfo("Adding UKMD Button");
 
+        // get the unmodded/real ukmd button
+        var realUKMD = Interactables.Find("V1 Must Die");
+
         // clone the brutal button
         var ukmdButton = Instantiate(Interactables.Find("Brutal").gameObject, Interactables);
         ukmdButton.GetComponent<DifficultySelectButton>().difficulty = 5;
-        ukmdButton.transform.Find("Name").GetComponent<TMP_Text>().text = DifficultyName.ToUpper();
-        ukmdButton.GetComponent<RectTransform>().position = new Vector2(30f, 157.5f);
+        ukmdButton.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = DifficultyName.ToUpper();
+        ukmdButton.transform.position = realUKMD.position;
         ukmdButton.name = $"{PLUGIN_NAME} UKMD Button";
 
         var ukmdInfo = Instantiate(Interactables.Find("Brutal Info").gameObject, Interactables);
         ukmdInfo.name = $"{PLUGIN_NAME} UKMD Info";
 
-        var ukmdTitle = ukmdInfo.transform.Find("Title (1)").GetComponent<TMP_Text>();
+        var ukmdTitle = ukmdInfo.transform.Find("Title (1)").GetComponent<TextMeshProUGUI>();
         ukmdTitle.fontSize = 29 /* this is the largest font size that we can use without the text being split into more than one line */;
         ukmdTitle.text = $"--{DifficultyName.ToUpper()}--";
 
         // set the description of UKMD
-        ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text = 
+        ukmdInfo.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = 
             """
             <color=yellow>The unfinished version of UKMD in the game's files.</color>
 
@@ -113,7 +116,7 @@ public class Plugin : BaseUnityPlugin
 
         // give the user notice about stuff
         if (HasBananaDifficulty)
-            ukmdInfo.transform.Find("Text").GetComponent<TMP_Text>().text +=
+            ukmdInfo.transform.Find("Text").GetComponent<TextMeshProUGUI>().text +=
                 "\n\n<color=yellow>Due to technical reasons, this uses the same save slot as Bananas Difficulty</color>";
 
 
@@ -149,7 +152,7 @@ public class Plugin : BaseUnityPlugin
         activationSequence.objectsToActivate[14 /* index of vanilla ukmd button */] = ukmdButton;
 
         // deactivate the normal ukmd button so that it doesn't get in the way
-        Interactables.Find("V1 Must Die").gameObject.SetActive(false);
+        realUKMD.gameObject.SetActive(false);
     }
 }
 
