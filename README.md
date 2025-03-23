@@ -20,6 +20,8 @@ This mod has support for [BananasDifficulty](https://thunderstore.io/c/ultrakill
     * UnityEngine.UI.dll
   - From [BananasDifficulty](https://thunderstore.io/c/ultrakill/p/bananastudio/BananasDifficulty/)
     * BananaDifficulty.dll
+  - From [ULTRAPAIN Refueled](https://thunderstore.io/c/ultrakill/p/Kritzmaker/ULTRAPAIN_Refueled/)
+    * Ultrapain_Refueled.dll
 
 3. run "dotnet build"
 

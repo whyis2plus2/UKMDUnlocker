@@ -52,8 +52,8 @@ public class Plugin : BaseUnityPlugin
         Instance = this;
         SceneManager.activeSceneChanged += OnSceneChange;
 
-        CrossMod.Bananas.Init();
-        CrossMod.Bananas.Disable();
+        CrossMod.BananasFix.Init();
+        CrossMod.UltrapainFix.Init();
 
         Harmony.PatchAll();
         Log.LogInfo($"Loaded {PLUGIN_NAME}");

@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 using Discord;
 
-public static class Bananas
+public static class BananasFix
 {
     public static bool HasBananas => Chainloader.PluginInfos.ContainsKey("com.michi.BananaDifficulty");
     public static bool IsEnabled {private set; get;} = false;
@@ -85,9 +85,12 @@ public static class Bananas
             }
         }
 
-        var bananaTrigger = Button.GetComponent<EventTrigger>();
-        bananaTrigger.triggers.Add(
+        Button.GetComponent<EventTrigger>().triggers.Add(
             Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => Enable())
+        );
+
+        plugin.UKMDButton.GetComponent<EventTrigger>().triggers.Add(
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => Disable())
         );
 
         Info.Find("Text").GetComponent<TMP_Text>().text += $"\n\n<#ff0>This uses the same save data as {Plugin.DIF_NAME}";
