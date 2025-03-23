@@ -1,7 +1,7 @@
 ﻿namespace UKMDUnlocker;
 
 using BepInEx;
-using BepInEx.Bootstrap;
+using BepInEx.Logging;
 using HarmonyLib;
 
 using System.Collections.Generic;
@@ -35,13 +35,13 @@ public class Plugin : BaseUnityPlugin
     public GameObject UKMDButton = null;
     public GameObject UKMDInfo = null;
 
-    readonly bool HasBananaDifficulty = Chainloader.PluginInfos.ContainsKey("com.michi.BananaDifficulty");
-
     /// <summary> The current instance of the plugin, accessable by all parts of the code </summary>
     public static Plugin Instance;
 
     /// <summary> We need to have an instance of this in order to do patches </summary>
-	readonly Harmony harmony = new(PLUGIN_GUID);
+	readonly Harmony Harmony = new(PLUGIN_GUID);
+
+    public ManualLogSource Log => Logger;
 
     // TODO: Figure out how to actually get the intro to work
     /// <summary> The scene name of the startup sequence/new save intro </summary>
@@ -52,8 +52,11 @@ public class Plugin : BaseUnityPlugin
         Instance = this;
         SceneManager.activeSceneChanged += OnSceneChange;
 
-        harmony.PatchAll();
-        Logger.LogInfo($"Loaded {Plugin.PLUGIN_NAME}");
+        CrossMod.Bananas.Init();
+        CrossMod.Bananas.Disable();
+
+        Harmony.PatchAll();
+        Log.LogInfo($"Loaded {PLUGIN_NAME}");
     }
 
     private void OnSceneChange(Scene last, Scene next)
@@ -69,9 +72,6 @@ public class Plugin : BaseUnityPlugin
         // create the new UKMD button and Info
         AddInfo();
         AddButton();
-
-        // if banana difficulty is avaliable then make any neccessary tweaks to its button and info
-        // if (HasBananaDifficulty) BananaDifficultyManager.ModifyButton();
     }
 
     /// <summary> Add the UKMD button and info to the difficulty select menu </summary>
@@ -80,7 +80,7 @@ public class Plugin : BaseUnityPlugin
         KeyValuePair<string, GameObject> FindElem(string name) =>
             new(name, Interactables.Find(name).gameObject);
 
-        Logger.LogInfo("Adding UKMD Button...");
+        Log.LogInfo("Adding UKMD Button...");
 
         Dictionary<string, GameObject> buttons = new([
             FindElem("Casual Easy"), // Harmless
@@ -116,7 +116,7 @@ public class Plugin : BaseUnityPlugin
         ukmdTrigger.triggers.Clear();
 
         // If the info hasn't been created yet, try to create it
-        if (UKMDInfo == null) AddInfo();
+        if (!UKMDInfo) AddInfo();
 
         // hide ukmd info if any of the other buttons are hovered over
         foreach (var button in buttons.Values) {
@@ -124,32 +124,32 @@ public class Plugin : BaseUnityPlugin
             if (!trigger) continue;
 
             trigger.triggers.Add(
-                CreateTriggerEntry(EventTriggerType.PointerEnter, (data) => UKMDInfo.SetActive(false))
+                Tools.CreateTriggerEntry(EventTriggerType.PointerEnter, _ => UKMDInfo.SetActive(false))
             );
         }
 
         // add new triggers to ukmd button
         ukmdTrigger.triggers.AddRange([
-            CreateTriggerEntry(EventTriggerType.PointerEnter, (data) =>
+            Tools.CreateTriggerEntry(EventTriggerType.PointerEnter, _ =>
             {
                 UKMDInfo.SetActive(true);
                 foreach (var info in infos.Values) info.SetActive(false);
             }),
 
-            CreateTriggerEntry(EventTriggerType.PointerExit,  (data) => UKMDInfo.SetActive(false)),
-            CreateTriggerEntry(EventTriggerType.PointerClick, (data) => UKMDInfo.SetActive(false)),
+            Tools.CreateTriggerEntry(EventTriggerType.PointerExit,  _ => UKMDInfo.SetActive(false)),
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => UKMDInfo.SetActive(false)),
         ]);
 
         // add ukmd button to the button activation sequence
         var activationSequence = Interactables.GetComponent<ObjectActivateInSequence>();
         activationSequence.objectsToActivate[14 /* index of vanilla ukmd button */] = UKMDButton;
 
-        Logger.LogInfo("Added UKMD Button!");
+        Log.LogInfo("Added UKMD Button");
     }
 
     private void AddInfo()
     {
-        Logger.LogInfo("Adding UKMD Info...");
+        Log.LogInfo("Adding UKMD Info...");
 
         UKMDInfo = Instantiate(Interactables.Find("Brutal Info").gameObject, Interactables);
         UKMDInfo.name = $"{DIF_NAME_SHORT} Info";
@@ -172,18 +172,11 @@ public class Plugin : BaseUnityPlugin
             <b>Recommended for players who have achieved near mastery over the game and are looking for a fitting challenge.</b>
             """;
 
-        Logger.LogInfo("Added UKMD Info!");
-    }
-
-    private EventTrigger.Entry CreateTriggerEntry(EventTriggerType id, UnityAction<BaseEventData> call)
-    {
-        EventTrigger.Entry ret = new() { eventID = id };
-        ret.callback.AddListener(call);
-        return ret;
+        Log.LogInfo("Added UKMD Info");
     }
 
     [HarmonyPatch(typeof(PrefsManager), "EnsureValid")]
-    static class PrefsManager_EnsureValid_Patch
+    private static class PrefsManager_EnsureValid_Patch
     {
         static void Postfix(ref object __result, string key, object value)
         {
