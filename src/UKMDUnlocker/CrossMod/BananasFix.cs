@@ -41,7 +41,11 @@ public static class BananasFix
     {
         if (!HasBananas) return;
 
-        Harmony.PatchAll();
+        // I don't know how else to prevent these from being patched in by patch all
+        Harmony.PatchOne(typeof(BananaDifficultyPlugin), "CanUseIt", typeof(BananaDifficultyPlugin_CanUseIt_Patch));
+        Harmony.PatchOne(typeof(DifficultyTitle), "Check", typeof(DifficultyTitle_Check_Patch));
+        Harmony.PatchOne(typeof(DiscordController), "SendActivity", typeof(DiscordController_SendActivity_Patch), true);
+
         IsEnabled = false;
     }
 
@@ -49,6 +53,7 @@ public static class BananasFix
     {
         if (next.name != Plugin.MAIN_MENU_NAME) return;
 
+        // bananas difficulty doesn't keep track of its button or infos, so we have to find them manually
         // find the difficulty button for BananasDifficulty
         foreach (Transform transform in plugin.Interactables)
         {
@@ -96,32 +101,29 @@ public static class BananasFix
         Info.Find("Text").GetComponent<TMP_Text>().text += $"\n\n<#ff0>This uses the same save data as {Plugin.DIF_NAME}";
     }
 
-    [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
     private static class BananaDifficultyPlugin_CanUseIt_Patch
     {
-        static void Postfix(ref bool __result)
+        public static void Postfix(ref bool __result)
         {
             __result = false;
         }
     }
 
-    [HarmonyPatch(typeof(DiscordController), "SendActivity")]
-    private static class DiscordController_SendActivity_Patch
-    {
-        static void Prefix(ref Activity ___cachedActivity)
-        {
-            if (___cachedActivity.State != "DIFFICULTY: BANANAS") return;
-            ___cachedActivity.State = $"DIFFICULTY {Plugin.DIF_NAME_SHORT}";
-        }
-    }
-
-    [HarmonyPatch(typeof(DifficultyTitle), "Check")]
 	private class DifficultyTitle_Check_Patch
     {
-        static void Postfix(ref TMP_Text ___txt2)
+        public static void Postfix(ref TMP_Text ___txt2)
         {
             if (!___txt2.text.Contains("BANANAS DIFFICULTY")) return;
             ___txt2.text = ___txt2.text.Replace("BANANAS DIFFICULTY", Plugin.DIF_NAME.ToUpper());
+        }
+    }
+
+    private static class DiscordController_SendActivity_Patch
+    {
+        public static void Prefix(ref Activity ___cachedActivity)
+        {
+            if (___cachedActivity.State != "DIFFICULTY: BANANAS") return;
+            ___cachedActivity.State = $"DIFFICULTY {Plugin.DIF_NAME_SHORT}";
         }
     }
 }
