@@ -3,7 +3,7 @@
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -175,13 +175,29 @@ public class Plugin : BaseUnityPlugin
         Log.LogInfo("Added UKMD Info");
     }
 
-    [HarmonyPatch(typeof(PrefsManager), "EnsureValid")]
-    private static class PrefsManager_EnsureValid_Patch
+    [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
+    private static class PrefsManager_Ctor_Patch
     {
-        static void Postfix(ref object __result, string key, object value)
+        static void Postfix(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
         {
-            if (key != "difficulty" || value is not int) return;
-            if ((int)value == 5) __result = value;
+            ___propertyValidators.Remove("difficulty");
+            ___propertyValidators.Add("difficulty", (value) =>
+            {
+                if (value is not int)
+                {
+                    ___Log.Warning("Difficulty value is not an int");
+                    return 2; // standard
+                }
+
+                int difficulty = (int)value;
+                if (difficulty < 0 || difficulty > 5)
+                {
+                    ___Log.Warning("Difficulty validation error");
+                    return 5; // UKMD
+                }
+
+                return null;
+            });
         }
     };
 }

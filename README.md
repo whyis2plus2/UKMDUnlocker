@@ -1,6 +1,7 @@
 # UKMDUnlocker
 UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on the difficulty select menu.<br>
 This mod has support for [BananasDifficulty](https://thunderstore.io/c/ultrakill/p/bananastudio/BananasDifficulty/) since v0.1.2
+This mod has support for [ULTRAPAIN Refueled](https://thunderstore.io/c/ultrakill/p/Kritzmaker/ULTRAPAIN_Refueled/) since v0.2.1
 
 ## Installation
 ### This mod does not work on any ULTRAKILL version before patch 16
@@ -16,6 +17,7 @@ This mod has support for [BananasDifficulty](https://thunderstore.io/c/ultrakill
     * 0Harmony.dll
   - From ULTRAKILL_Data/Managed add:
     * Assembly-CSharp.dll
+    * plog.dll
     * Unity.TextMeshPro.dll
     * UnityEngine.UI.dll
   - From [BananasDifficulty](https://thunderstore.io/c/ultrakill/p/bananastudio/BananasDifficulty/)
