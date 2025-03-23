@@ -109,7 +109,7 @@ public static class BananasFix
         }
     }
 
-	private class DifficultyTitle_Check_Patch
+    private class DifficultyTitle_Check_Patch
     {
         public static void Postfix(ref TMP_Text ___txt2)
         {

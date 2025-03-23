@@ -39,7 +39,7 @@ public class Plugin : BaseUnityPlugin
     public static Plugin Instance;
 
     /// <summary> We need to have an instance of this in order to do patches </summary>
-	readonly Harmony Harmony = new(PLUGIN_GUID);
+    readonly Harmony Harmony = new(PLUGIN_GUID);
 
     public ManualLogSource Log => Logger;
 
