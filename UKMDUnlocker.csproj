@@ -13,7 +13,7 @@
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
     <RootNamespace>UKMDUnlocker</RootNamespace>
-    <NoWarn>IDE1006, IDE0044, IDE0130</NoWarn>
+    <NoWarn>IDE1006, IDE0044, IDE0130, IDE0028</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
