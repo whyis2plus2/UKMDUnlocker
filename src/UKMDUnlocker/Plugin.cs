@@ -132,7 +132,7 @@ public class Plugin : BaseUnityPlugin
             }),
 
             Tools.CreateTriggerEntry(EventTriggerType.PointerExit,  _ => UKMDInfo.SetActive(false)),
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => UKMDInfo.SetActive(false)),
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => UKMDInfo.SetActive(Interactables.gameObject.activeSelf)),
         ]);
 
         // add ukmd button to the button activation sequence
