@@ -16,13 +16,4 @@ public static class Tools
         ret.callback.AddListener(call);
         return ret;
     }
-
-    public static void PatchOne(this Harmony harmony, Type origType, string methodName, Type patch, bool prefix = false)
-    {
-        harmony.Patch(
-            origType.GetMethod(methodName, AccessTools.all),
-            prefix: (prefix)? new(patch.GetMethod("Prefix", AccessTools.all)) : null,
-            postfix: (prefix)? null : new(patch.GetMethod("Postfix", AccessTools.all))
-        );
-    }
 }

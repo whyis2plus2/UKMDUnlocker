@@ -21,12 +21,12 @@ public static class UltrapainFix
         if (!HasUltrapain) return;
 
         plugin.Log.LogInfo("Detected Ultrapain");
-        SceneManager.activeSceneChanged += OnSceneChange;
+        SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
     }
 
-    private static void OnSceneChange(Scene last, Scene next)
+    private static void OnSceneChange()
     {
-        if (next.name != Plugin.MAIN_MENU_NAME) return;
+        if (SceneHelper.CurrentScene != "Main Menu") return;
 
         Button.GetComponent<EventTrigger>().triggers.Add(
             Tools.CreateTriggerEntry(EventTriggerType.PointerEnter, _ => plugin.UKMDInfo.SetActive(false))

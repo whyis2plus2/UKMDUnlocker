@@ -24,11 +24,6 @@ public class Plugin : BaseUnityPlugin
     public const string DIF_NAME = "Ultrakill Must Die";
     public const string DIF_NAME_SHORT = "UKMD";
 
-
-    /// <summary> The scene name of the main menu </summary>
-    public const string MAIN_MENU_NAME = "b3e7f2f8052488a45b35549efb98d902";
-
-
     /// <summary> The "interactable" components of the difficulty select menu (mostly just difficulty buttons and infos) </summary>
     public Transform Interactables {private set; get;}
 
@@ -50,7 +45,7 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Instance = this;
-        SceneManager.activeSceneChanged += OnSceneChange;
+        SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
 
         CrossMod.BananasFix.Init();
         CrossMod.UltrapainFix.Init();
@@ -59,12 +54,12 @@ public class Plugin : BaseUnityPlugin
         Log.LogInfo($"Loaded {PLUGIN_NAME}");
     }
 
-    private void OnSceneChange(Scene last, Scene next)
+    private void OnSceneChange()
     {
-        LeaderboardProperties.Difficulties[5] = (next.name == MAIN_MENU_NAME)? DIF_NAME_SHORT : DIF_NAME;
-        if (next.name != MAIN_MENU_NAME) return;
+        LeaderboardProperties.Difficulties[5] = (SceneHelper.CurrentScene == "Main Menu")? DIF_NAME_SHORT : DIF_NAME;
+        if (SceneHelper.CurrentScene != "Main Menu") return;
 
-        var canvas = (from obj in next.GetRootGameObjects() where obj.name == "Canvas" select obj).First().transform;
+        var canvas = (from obj in SceneManager.GetActiveScene().GetRootGameObjects() where obj.name == "Canvas" select obj).First().transform;
 
         // difficulty buttons and difficulty infos
         Interactables = canvas.Find("Difficulty Select (1)/Interactables");
@@ -186,17 +181,17 @@ public class Plugin : BaseUnityPlugin
                 if (value is not int)
                 {
                     ___Log.Warning("Difficulty value is not an int");
-                    return 2; // standard
+                    return GameDifficulty.Standard;
                 }
 
-                int difficulty = (int)value;
+                var difficulty = (int)value;
                 if (difficulty < 0 || difficulty > 5)
                 {
                     ___Log.Warning("Difficulty validation error");
-                    return 5; // UKMD
+                    return GameDifficulty.UKMD;
                 }
 
-                return null;
+                return value;
             });
         }
     };

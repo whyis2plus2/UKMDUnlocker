@@ -18,7 +18,7 @@ public static class BananasFix
     public static Transform Button {private set; get;} = null;
     public static Transform Info {private set; get;} = null;
     
-    static readonly Harmony Harmony = new($"{Plugin.PLUGIN_GUID}.crossmod.bananas");
+    // static readonly Harmony Harmony = new($"{Plugin.PLUGIN_GUID}.crossmod.bananas");
     static Plugin plugin => Plugin.Instance;
 
     public static void Init()
@@ -26,32 +26,12 @@ public static class BananasFix
         if (!HasBananas) return;
 
         plugin.Log.LogInfo("Detected BananasDifficulty");
-        SceneManager.activeSceneChanged += OnSceneChange;
+        SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
     }
 
-    public static void Enable()
+    private static void OnSceneChange()
     {
-        if (!HasBananas) return;
-
-        Harmony.UnpatchSelf();
-        IsEnabled = true;
-    }
-
-    public static void Disable()
-    {
-        if (!HasBananas) return;
-
-        // I don't know how else to prevent these from being patched in by patch all
-        Harmony.PatchOne(typeof(BananaDifficultyPlugin), "CanUseIt", typeof(BananaDifficultyPlugin_CanUseIt_Patch));
-        Harmony.PatchOne(typeof(DifficultyTitle), "Check", typeof(DifficultyTitle_Check_Patch));
-        Harmony.PatchOne(typeof(DiscordController), "SendActivity", typeof(DiscordController_SendActivity_Patch), true);
-
-        IsEnabled = false;
-    }
-
-    private static void OnSceneChange(Scene last, Scene next)
-    {
-        if (next.name != Plugin.MAIN_MENU_NAME) return;
+        if (SceneHelper.CurrentScene != "Main Menu") return;
 
         // bananas difficulty doesn't keep track of its button or infos, so we have to find them manually
         // find the difficulty button for BananasDifficulty
@@ -91,37 +71,45 @@ public static class BananasFix
         }
 
         Button.GetComponent<EventTrigger>().triggers.Add(
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => Enable())
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => IsEnabled = true)
         );
 
         plugin.UKMDButton.GetComponent<EventTrigger>().triggers.Add(
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => Disable())
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => IsEnabled = false)
         );
 
         Info.Find("Text").GetComponent<TMP_Text>().text += $"\n\n<#ff0>This uses the same save data as {Plugin.DIF_NAME}";
     }
 
+    [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
     private static class BananaDifficultyPlugin_CanUseIt_Patch
     {
+        public static bool Prepare() => HasBananas;
         public static void Postfix(ref bool __result)
         {
-            __result = false;
+            if (!IsEnabled) __result = false;
         }
     }
 
+    [HarmonyPatch(typeof(DifficultyTitle), "Check")]
     private class DifficultyTitle_Check_Patch
     {
-        public static void Postfix(ref TMP_Text ___txt2)
+        static bool Prepare() => HasBananas;
+        static void Postfix(ref TMP_Text ___txt2)
         {
+            if (IsEnabled) return;
             if (!___txt2.text.Contains("BANANAS DIFFICULTY")) return;
             ___txt2.text = ___txt2.text.Replace("BANANAS DIFFICULTY", Plugin.DIF_NAME.ToUpper());
         }
     }
 
+    [HarmonyPatch(typeof(DiscordController), "SendActivity")]
     private static class DiscordController_SendActivity_Patch
     {
-        public static void Prefix(ref Activity ___cachedActivity)
+        static bool Prepare() => HasBananas;
+        static void Prefix(ref Activity ___cachedActivity)
         {
+            if (IsEnabled) return;
             if (___cachedActivity.State != "DIFFICULTY: BANANAS") return;
             ___cachedActivity.State = $"DIFFICULTY {Plugin.DIF_NAME_SHORT}";
         }
