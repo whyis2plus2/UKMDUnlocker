@@ -10,6 +10,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 using Discord;
+using System;
 
 public static class BananasFix
 {
@@ -84,8 +85,8 @@ public static class BananasFix
     [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
     private static class BananaDifficultyPlugin_CanUseIt_Patch
     {
-        public static bool Prepare() => HasBananas;
-        public static void Postfix(ref bool __result)
+        static bool Prepare() => HasBananas;
+        static void Postfix(ref bool __result)
         {
             if (!IsEnabled) __result = false;
         }
