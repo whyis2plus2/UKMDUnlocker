@@ -18,7 +18,6 @@ public static class BananasFix
     public static Transform Button {private set; get;} = null;
     public static Transform Info {private set; get;} = null;
     
-    // static readonly Harmony Harmony = new($"{Plugin.PLUGIN_GUID}.crossmod.bananas");
     static Plugin plugin => Plugin.Instance;
 
     public static void Init()
