@@ -19,6 +19,7 @@ public static class BananasFix
     public static Transform Info {private set; get;} = null;
     
     static Plugin plugin => Plugin.Instance;
+    private static readonly Harmony harmony = new($"{Plugin.PLUGIN_GUID}.CrossMod.BananasFix");
 
     public static void Init()
     {
@@ -26,6 +27,8 @@ public static class BananasFix
 
         plugin.Log.LogInfo("Detected BananasDifficulty");
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
+
+        harmony.PatchAll(typeof(Patches));
     }
 
     private static void OnSceneChange()
@@ -80,44 +83,60 @@ public static class BananasFix
         Info.Find("Text").GetComponent<TMP_Text>().text += $"\n\n<#ff0>This uses the same save data as {Plugin.DIF_NAME}";
     }
 
-    [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
-    private static class BananaDifficultyPlugin_CanUseIt_Patch
+    private static class Patches
     {
-        static bool Prepare() => HasBananas;
-        static void Postfix(ref bool __result)
+        [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
+        [HarmonyPostfix]
+        static void BananaDifficultyPlugin_CanUseIt_Postfix(ref bool __result)
         {
             if (!IsEnabled) __result = false;
         }
-    }
 
-    // Turret is the name of the class for Sentries
-    [HarmonyPatch(typeof(Turret), "Start")]
-    private static class Turret_Start_Patch
-    {
-        static bool Prepare() => HasBananas;
-        static void Postfix(ref float ___maxAimTime)
+        // Turret is the name of the class for sentries
+        [HarmonyPatch(typeof(Turret), "Start")]
+        [HarmonyPostfix]
+        static void Turret_Start_Postfix(ref float ___maxAimTime, GameDifficulty ___difficulty)
         {
-            if (!IsEnabled) ___maxAimTime = 3.0f;
-        }
-    }
+            // Bananas Difficulty is enabled
+            if (IsEnabled && Tools.Difficulty == 5) return;
 
-    [HarmonyPatch(typeof(DifficultyTitle), "Check")]
-    private class DifficultyTitle_Check_Patch
-    {
-        static bool Prepare() => HasBananas;
-        static void Postfix(ref TMP_Text ___txt2)
+            // We have to patch this because bananas difficulty doesn't check CanUseIt
+            // before changing sentries
+            // This also just fixes a bug with bananas difficulty
+            switch (___difficulty)
+            {
+                case GameDifficulty.Harmless:
+                    ___maxAimTime = 7.5f;
+                    break;
+
+                case GameDifficulty.Lenient:
+                case GameDifficulty.Standard:
+                    ___maxAimTime = 5f;
+                    break;
+
+                case GameDifficulty.Violent:
+                    ___maxAimTime = 4f;
+                    break;
+
+                case GameDifficulty.Brutal:
+                case GameDifficulty.UKMD:
+                    ___maxAimTime = 3f;
+                    break;
+            }
+        }
+
+        [HarmonyPatch(typeof(DifficultyTitle), "Check")]
+        [HarmonyPostfix]
+        static void DifficultyTitle_Check_Postfix(ref TMP_Text ___txt2)
         {
             if (IsEnabled) return;
             if (!___txt2.text.Contains("BANANAS DIFFICULTY")) return;
             ___txt2.text = ___txt2.text.Replace("BANANAS DIFFICULTY", Plugin.DIF_NAME.ToUpper());
         }
-    }
 
-    [HarmonyPatch(typeof(DiscordController), "SendActivity")]
-    private static class DiscordController_SendActivity_Patch
-    {
-        static bool Prepare() => HasBananas;
-        static void Prefix(ref Activity ___cachedActivity)
+        [HarmonyPatch(typeof(DiscordController), "SendActivity")]
+        [HarmonyPrefix]
+        static void DiscordController_SendActivity_Prefix(ref Activity ___cachedActivity)
         {
             if (IsEnabled) return;
             if (___cachedActivity.State != "DIFFICULTY: BANANAS") return;

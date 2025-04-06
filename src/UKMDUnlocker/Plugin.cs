@@ -9,7 +9,6 @@ using System.Linq;
 
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
@@ -33,14 +32,10 @@ public class Plugin : BaseUnityPlugin
     /// <summary> The current instance of the plugin, accessable by all parts of the code </summary>
     public static Plugin Instance;
 
-    /// <summary> We need to have an instance of this in order to do patches </summary>
-    readonly Harmony Harmony = new(PLUGIN_GUID);
-
     public ManualLogSource Log => Logger;
 
-    // TODO: Figure out how to actually get the intro to work
-    /// <summary> The scene name of the startup sequence/new save intro </summary>
-    // private const string INTRO_NAME = "4f8ecffaa98c2614f89922daf31fa22d";
+    /// <summary> We need to have an instance of this in order to do patches </summary>
+    private static readonly Harmony harmony = new(PLUGIN_GUID);
 
     private void Awake()
     {
@@ -50,7 +45,7 @@ public class Plugin : BaseUnityPlugin
         CrossMod.BananasFix.Init();
         CrossMod.UltrapainFix.Init();
 
-        Harmony.PatchAll();
+        harmony.PatchAll(typeof(Patches));
         Log.LogInfo($"Loaded {PLUGIN_NAME}");
     }
 
@@ -170,10 +165,11 @@ public class Plugin : BaseUnityPlugin
         Log.LogInfo("Added UKMD Info");
     }
 
-    [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
-    private static class PrefsManager_Ctor_Patch
+    private static class Patches
     {
-        static void Postfix(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
+        [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
+        [HarmonyPostfix]
+        static void PrefsManager_Ctor_Postfix(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
         {
             ___propertyValidators.Remove("difficulty");
             ___propertyValidators.Add("difficulty", (value) =>
