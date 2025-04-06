@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UKMDUnlocker</AssemblyName>
     <Description>Adds ULTRAKILL MUST DIE to the difficulty selection menu.</Description>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>

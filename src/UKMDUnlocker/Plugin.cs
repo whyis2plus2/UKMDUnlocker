@@ -19,7 +19,7 @@ public class Plugin : BaseUnityPlugin
     // angry level loader does this, and I quite like it
     public const string PLUGIN_GUID = "com.whyis2plus2.UKMDUnlocker";
     public const string PLUGIN_NAME = "UKMDUnlocker";
-    public const string PLUGIN_VERSION = "0.2.1";
+    public const string PLUGIN_VERSION = "0.2.2";
 
     public const string DIF_NAME = "Ultrakill Must Die";
     public const string DIF_NAME_SHORT = "UKMD";
