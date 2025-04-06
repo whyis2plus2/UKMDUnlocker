@@ -10,7 +10,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 using Discord;
-using System;
 
 public static class BananasFix
 {
@@ -89,6 +88,17 @@ public static class BananasFix
         static void Postfix(ref bool __result)
         {
             if (!IsEnabled) __result = false;
+        }
+    }
+
+    // Turret is the name of the class for Sentries
+    [HarmonyPatch(typeof(Turret), "Start")]
+    private static class Turret_Start_Patch
+    {
+        static bool Prepare() => HasBananas;
+        static void Postfix(ref float ___maxAimTime)
+        {
+            if (!IsEnabled) ___maxAimTime = 3.0f;
         }
     }
 
