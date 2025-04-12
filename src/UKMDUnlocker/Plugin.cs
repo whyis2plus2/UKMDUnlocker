@@ -25,7 +25,7 @@ public class Plugin : BaseUnityPlugin
     public const string DIF_NAME_SHORT = "UKMD";
 
     /// <summary> The "interactable" components of the difficulty select menu (mostly just difficulty buttons and infos) </summary>
-    public Transform Interactables {set; get;}
+    public Transform Interactables {private set; get;}
 
     public GameObject UKMDButton = null;
     public GameObject UKMDInfo = null;
@@ -169,7 +169,7 @@ public class Plugin : BaseUnityPlugin
     static class Patches
     {
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)] // constructor patch
+        [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
         static void AllowUKMD(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
         {
             // remove the old difficulty check

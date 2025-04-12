@@ -83,17 +83,6 @@ public static class BananasFix
         Info.Find("Text").GetComponent<TMP_Text>().text += $"\n\n<#ff0>This uses the same save data as {Plugin.DIF_NAME}";
     }
 
-    // Turret is the name of the class for Sentries
-    [HarmonyPatch(typeof(Turret), "Start")]
-    static class Turret_Start_Patch
-    {
-        [HarmonyPatch]
-        static void Postfix(ref float ___maxAimTime)
-        {
-            if (!IsEnabled) ___maxAimTime = 3.0f;
-        }
-    }
-
     static class Patches
     {
         [HarmonyPostfix]
