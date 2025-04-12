@@ -14,7 +14,7 @@ using Discord;
 public static class BananasFix
 {
     public static bool HasBananas => Chainloader.PluginInfos.ContainsKey("com.michi.BananaDifficulty");
-    public static bool IsEnabled {private set; get;} = false;
+    public static bool BananasEnabled {private set; get;} = false;
     public static Transform Button {private set; get;} = null;
     public static Transform Info {private set; get;} = null;
     
@@ -72,11 +72,11 @@ public static class BananasFix
         }
 
         Button.GetComponent<EventTrigger>().triggers.Add(
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => IsEnabled = true)
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => BananasEnabled = true)
         );
 
         plugin.UKMDButton.GetComponent<EventTrigger>().triggers.Add(
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => IsEnabled = false)
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => BananasEnabled = false)
         );
 
         Info.Find("Text").GetComponent<TMP_Text>().text += $"\n\n<#ff0>This uses the same save data as {Plugin.DIF_NAME}";
@@ -88,14 +88,14 @@ public static class BananasFix
         [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
         static void DisableBananas(ref bool __result)
         {
-            IsEnabled = __result &= IsEnabled;
+            BananasEnabled = __result &= BananasEnabled;
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(DifficultyTitle), "Check")]
         static void RestoreUKMDTitle(ref TMP_Text ___txt2)
         {
-            if (IsEnabled) return;
+            if (BananasEnabled) return;
             if (!___txt2.text.Contains("BANANAS DIFFICULTY")) return;
             ___txt2.text = ___txt2.text.Replace("BANANAS DIFFICULTY", Plugin.DIF_NAME.ToUpper());
         }
@@ -104,7 +104,7 @@ public static class BananasFix
         [HarmonyPatch(typeof(DiscordController), "SendActivity")]
         static void RestoreUKMDActivity(ref Activity ___cachedActivity)
         {
-            if (IsEnabled) return;
+            if (BananasEnabled) return;
             if (___cachedActivity.State != "DIFFICULTY: BANANAS") return;
             ___cachedActivity.State = $"DIFFICULTY {Plugin.DIF_NAME_SHORT}";
         }
@@ -115,7 +115,7 @@ public static class BananasFix
         [HarmonyPatch(typeof(Turret), "Start")]
         static void FixSentryCooldowns(ref float ___maxAimTime, int ___difficulty)
         {
-            ___maxAimTime = ___difficulty switch
+            if (!BananasEnabled) ___maxAimTime = ___difficulty switch
             {
                 0 => 7.5f, // Harmless
                 3 => 4f,   // Violent
