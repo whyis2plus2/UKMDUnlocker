@@ -25,7 +25,7 @@ public class Plugin : BaseUnityPlugin
     public const string DIF_NAME_SHORT = "UKMD";
 
     /// <summary> The "interactable" components of the difficulty select menu (mostly just difficulty buttons and infos) </summary>
-    public Transform Interactables {private set; get;}
+    public Transform Interactables {set; get;}
 
     public GameObject UKMDButton = null;
     public GameObject UKMDInfo = null;
@@ -33,16 +33,12 @@ public class Plugin : BaseUnityPlugin
     /// <summary> The current instance of the plugin, accessable by all parts of the code </summary>
     public static Plugin Instance;
 
-    /// <summary> We need to have an instance of this in order to do patches </summary>
-    readonly Harmony Harmony = new(PLUGIN_GUID);
-
     public ManualLogSource Log => Logger;
 
-    // TODO: Figure out how to actually get the intro to work
-    /// <summary> The scene name of the startup sequence/new save intro </summary>
-    // private const string INTRO_NAME = "4f8ecffaa98c2614f89922daf31fa22d";
+    /// <summary> We need to have an instance of this in order to do patches </summary>
+    readonly Harmony harmony = new(PLUGIN_GUID);
 
-    private void Awake()
+    void Awake()
     {
         Instance = this;
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
@@ -50,11 +46,11 @@ public class Plugin : BaseUnityPlugin
         CrossMod.BananasFix.Init();
         CrossMod.UltrapainFix.Init();
 
-        Harmony.PatchAll();
+        harmony.PatchAll(typeof(Patches));
         Log.LogInfo($"Loaded {PLUGIN_NAME}");
     }
 
-    private void OnSceneChange()
+    void OnSceneChange()
     {
         LeaderboardProperties.Difficulties[5] = (SceneHelper.CurrentScene == "Main Menu")? DIF_NAME_SHORT : DIF_NAME;
         if (SceneHelper.CurrentScene != "Main Menu") return;
@@ -70,7 +66,7 @@ public class Plugin : BaseUnityPlugin
     }
 
     /// <summary> Add the UKMD button and info to the difficulty select menu </summary>
-    private void AddButton()
+    void AddButton()
     {
         KeyValuePair<string, GameObject> FindElem(string name) =>
             new(name, Interactables.Find(name).gameObject);
@@ -142,7 +138,7 @@ public class Plugin : BaseUnityPlugin
         Log.LogInfo("Added UKMD Button");
     }
 
-    private void AddInfo()
+    void AddInfo()
     {
         Log.LogInfo("Adding UKMD Info...");
 
@@ -170,12 +166,16 @@ public class Plugin : BaseUnityPlugin
         Log.LogInfo("Added UKMD Info");
     }
 
-    [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
-    private static class PrefsManager_Ctor_Patch
+    static class Patches
     {
-        static void Postfix(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)] // constructor patch
+        static void AllowUKMD(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
         {
+            // remove the old difficulty check
             ___propertyValidators.Remove("difficulty");
+
+            // add a new one that forces difficulty to be in the range 0..5 instead of 0..4
             ___propertyValidators.Add("difficulty", (value) =>
             {
                 if (value is not int)
@@ -191,6 +191,7 @@ public class Plugin : BaseUnityPlugin
                     return GameDifficulty.UKMD;
                 }
 
+                // use the passed in value
                 return value;
             });
         }

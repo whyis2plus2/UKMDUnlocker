@@ -24,7 +24,7 @@ public static class UltrapainFix
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
     }
 
-    private static void OnSceneChange()
+    static void OnSceneChange()
     {
         if (SceneHelper.CurrentScene != "Main Menu") return;
 

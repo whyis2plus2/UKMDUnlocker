@@ -19,16 +19,19 @@ public static class BananasFix
     public static Transform Info {private set; get;} = null;
     
     static Plugin plugin => Plugin.Instance;
+    static readonly Harmony harmony = new($"{Plugin.PLUGIN_GUID}.CrossMod.BananasFix");
 
     public static void Init()
     {
         if (!HasBananas) return;
 
         plugin.Log.LogInfo("Detected BananasDifficulty");
+
+        harmony.PatchAll(typeof(Patches));
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
     }
 
-    private static void OnSceneChange()
+    static void OnSceneChange()
     {
         if (SceneHelper.CurrentScene != "Main Menu") return;
 
@@ -80,48 +83,61 @@ public static class BananasFix
         Info.Find("Text").GetComponent<TMP_Text>().text += $"\n\n<#ff0>This uses the same save data as {Plugin.DIF_NAME}";
     }
 
-    [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
-    private static class BananaDifficultyPlugin_CanUseIt_Patch
-    {
-        static bool Prepare() => HasBananas;
-        static void Postfix(ref bool __result)
-        {
-            if (!IsEnabled) __result = false;
-        }
-    }
-
     // Turret is the name of the class for Sentries
     [HarmonyPatch(typeof(Turret), "Start")]
-    private static class Turret_Start_Patch
+    static class Turret_Start_Patch
     {
-        static bool Prepare() => HasBananas;
+        [HarmonyPatch]
         static void Postfix(ref float ___maxAimTime)
         {
             if (!IsEnabled) ___maxAimTime = 3.0f;
         }
     }
 
-    [HarmonyPatch(typeof(DifficultyTitle), "Check")]
-    private class DifficultyTitle_Check_Patch
+    static class Patches
     {
-        static bool Prepare() => HasBananas;
-        static void Postfix(ref TMP_Text ___txt2)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
+        static void DisableBananas(ref bool __result)
+        {
+            if (!IsEnabled) __result = false;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(DifficultyTitle), "Check")]
+        static void RestoreUKMDTitle(ref TMP_Text ___txt2)
         {
             if (IsEnabled) return;
             if (!___txt2.text.Contains("BANANAS DIFFICULTY")) return;
             ___txt2.text = ___txt2.text.Replace("BANANAS DIFFICULTY", Plugin.DIF_NAME.ToUpper());
         }
-    }
 
-    [HarmonyPatch(typeof(DiscordController), "SendActivity")]
-    private static class DiscordController_SendActivity_Patch
-    {
-        static bool Prepare() => HasBananas;
-        static void Prefix(ref Activity ___cachedActivity)
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DiscordController), "SendActivity")]
+        static void RestoreUKMDActivity(ref Activity ___cachedActivity)
         {
             if (IsEnabled) return;
             if (___cachedActivity.State != "DIFFICULTY: BANANAS") return;
             ___cachedActivity.State = $"DIFFICULTY {Plugin.DIF_NAME_SHORT}";
+        }
+
+        // Turret is the name of the class for Sentries
+        /// <summary> Bananas difficulty removes sentry cooldowns on all difficulties, so I have to fix that </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Turret), "Start")]
+        static void FixSentryCooldowns(ref float ___maxAimTime, GameDifficulty ___difficulty)
+        {
+            // yeah, this is fine
+            if (IsEnabled && ___difficulty == GameDifficulty.UKMD) return;
+
+            ___maxAimTime = ___difficulty switch
+            {
+                GameDifficulty.Harmless => 7.5f,
+                GameDifficulty.Lenient  => 5f,
+                GameDifficulty.Standard => 5f,
+                GameDifficulty.Violent  => 4f,
+                _ => 3f
+            };
         }
     }
 }
