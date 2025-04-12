@@ -24,19 +24,20 @@ public class Plugin : BaseUnityPlugin
     public const string DIF_NAME = "Ultrakill Must Die";
     public const string DIF_NAME_SHORT = "UKMD";
 
+    /// <summary> The current instance of the plugin, accessable by all parts of the code </summary>
+    public static Plugin Instance;
+
     /// <summary> The "interactable" components of the difficulty select menu (mostly just difficulty buttons and infos) </summary>
     public Transform Interactables {private set; get;}
 
     public GameObject UKMDButton = null;
     public GameObject UKMDInfo = null;
 
-    /// <summary> The current instance of the plugin, accessable by all parts of the code </summary>
-    public static Plugin Instance;
-
+    /// <summary> Public version of the Logger so that the rest of the mod can acess it </summary>
     public ManualLogSource Log => Logger;
 
     /// <summary> We need to have an instance of this in order to do patches </summary>
-    readonly Harmony harmony = new(PLUGIN_GUID);
+    public readonly Harmony HarmonyPatches = new(PLUGIN_GUID);
 
     void Awake()
     {
@@ -46,7 +47,7 @@ public class Plugin : BaseUnityPlugin
         CrossMod.BananasFix.Init();
         CrossMod.UltrapainFix.Init();
 
-        harmony.PatchAll(typeof(Patches));
+        HarmonyPatches.PatchAll(typeof(Patches));
         Log.LogInfo($"Loaded {PLUGIN_NAME}");
     }
 

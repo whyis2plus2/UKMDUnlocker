@@ -19,7 +19,6 @@ public static class BananasFix
     public static Transform Info {private set; get;} = null;
     
     static Plugin plugin => Plugin.Instance;
-    static readonly Harmony harmony = new($"{Plugin.PLUGIN_GUID}.CrossMod.BananasFix");
 
     public static void Init()
     {
@@ -27,7 +26,7 @@ public static class BananasFix
 
         plugin.Log.LogInfo("Detected BananasDifficulty");
 
-        harmony.PatchAll(typeof(Patches));
+        plugin.HarmonyPatches.PatchAll(typeof(Patches));
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
     }
 
@@ -89,7 +88,7 @@ public static class BananasFix
         [HarmonyPatch(typeof(BananaDifficultyPlugin), "CanUseIt")]
         static void DisableBananas(ref bool __result)
         {
-            if (!IsEnabled) __result = false;
+            IsEnabled = __result &= IsEnabled;
         }
 
         [HarmonyPostfix]
@@ -114,18 +113,15 @@ public static class BananasFix
         /// <summary> Bananas difficulty removes sentry cooldowns on all difficulties, so I have to fix that </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Turret), "Start")]
-        static void FixSentryCooldowns(ref float ___maxAimTime, GameDifficulty ___difficulty)
+        static void FixSentryCooldowns(ref float ___maxAimTime, int ___difficulty)
         {
-            // yeah, this is fine
-            if (IsEnabled && ___difficulty == GameDifficulty.UKMD) return;
-
             ___maxAimTime = ___difficulty switch
             {
-                GameDifficulty.Harmless => 7.5f,
-                GameDifficulty.Lenient  => 5f,
-                GameDifficulty.Standard => 5f,
-                GameDifficulty.Violent  => 4f,
-                _ => 3f
+                0 => 7.5f, // Harmless
+                3 => 4f,   // Violent
+                4 => 3f,   // Brutal
+                5 => 3f,   // UKMD
+                _ => 5f    // Lenient, Standard, Ultrapain
             };
         }
     }
