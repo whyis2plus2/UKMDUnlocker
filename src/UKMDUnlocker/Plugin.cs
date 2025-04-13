@@ -173,6 +173,8 @@ public class Plugin : BaseUnityPlugin
         [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
         static void AllowUKMD(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
         {
+            if (!___propertyValidators.ContainsKey("difficulty")) return; // Just in case
+
             // remove the old difficulty check
             ___propertyValidators.Remove("difficulty");
 
