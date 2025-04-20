@@ -108,21 +108,5 @@ public static class BananasFix
             if (___cachedActivity.State != "DIFFICULTY: BANANAS") return;
             ___cachedActivity.State = $"DIFFICULTY {Plugin.DIF_NAME_SHORT}";
         }
-
-        // Turret is the name of the class for Sentries
-        /// <summary> Bananas difficulty removes sentry cooldowns on all difficulties, so I have to fix that </summary>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(Turret), "Start")]
-        static void FixSentryCooldowns(ref float ___maxAimTime, int ___difficulty)
-        {
-            if (!BananasEnabled) ___maxAimTime = ___difficulty switch
-            {
-                0 => 7.5f, // Harmless
-                3 => 4f,   // Violent
-                4 => 3f,   // Brutal
-                5 => 3f,   // UKMD
-                _ => 5f    // Lenient, Standard, Ultrapain
-            };
-        }
     }
 }
