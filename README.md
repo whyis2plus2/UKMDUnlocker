@@ -1,3 +1,6 @@
+> [!Note]
+> This project has been put on hold, likely indefinitely
+
 # UKMDUnlocker
 UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on the difficulty select menu.<br>
 This mod has support for [BananasDifficulty](https://thunderstore.io/c/ultrakill/p/bananastudio/BananasDifficulty/) since v0.1.2<br>
