@@ -15,7 +15,7 @@ using UnityEngine.UI;
 public static class AngryFix
 {
     public static DifficultyField angryDifficultyField => hasAngry? AngryLevelLoader.Plugin.difficultyField : null;
-    public static bool hasAngry => Chainloader.PluginInfos.ContainsKey("com.eternalUnion.angryLevelLoader");
+    public static bool hasAngry => Chainloader.PluginInfos.ContainsKey(AngryLevelLoader.Plugin.PLUGIN_GUID);
     
     static Plugin plugin => Plugin.Instance;
 
@@ -23,7 +23,7 @@ public static class AngryFix
     {
         if (!hasAngry) return;
 
-        plugin.logger.LogInfo($"Detected com.eternalUnion.angryLevelLoader");
+        plugin.logger.LogInfo($"Detected {AngryLevelLoader.Plugin.PLUGIN_GUID}");
         plugin.HarmonyPatches.PatchAll(typeof(Patches));
     }
 

@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
-[BepInDependency("com.eternalUnion.angryLevelLoader", Flags: DependencyFlags.SoftDependency)]
+[BepInDependency(AngryLevelLoader.Plugin.PLUGIN_GUID, Flags: DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     // angry level loader does this, and I quite like it
