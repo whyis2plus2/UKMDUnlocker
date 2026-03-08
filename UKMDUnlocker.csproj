@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UKMDUnlocker</AssemblyName>
     <Description>Adds ULTRAKILL MUST DIE to the difficulty selection menu.</Description>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -13,6 +13,7 @@
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
     <RootNamespace>UKMDUnlocker</RootNamespace>
+    <DebugType>Embedded</DebugType>
     <NoWarn>IDE1006, IDE0044, IDE0130, IDE0028</NoWarn>
   </PropertyGroup>
 

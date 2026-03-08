@@ -1,7 +1,8 @@
 lib/*
 bin/*
 obj/*
-.vscode/*
 out/*
+.vscode/*
+.vs/*
 
 whyis2plus2-UKMDUnlocker-*.zip

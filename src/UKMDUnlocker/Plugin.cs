@@ -14,15 +14,16 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
-[BepInDependency(AngryLevelLoader.Plugin.PLUGIN_GUID, Flags: DependencyFlags.SoftDependency)]
+[BepInDependency("com.eternalUnion.angryLevelLoader", Flags: DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     // angry level loader does this, and I quite like it
     public const string PLUGIN_GUID = "com.whyis2plus2.UKMDUnlocker";
     public const string PLUGIN_NAME = "UKMDUnlocker";
-    public const string PLUGIN_VERSION = "0.3.0";
+    public const string PLUGIN_VERSION = "0.3.1";
 
     public const string DIF_NAME = "Ultrakill Must Die";
     public const string DIF_NAME_SHORT = "UKMD";
@@ -44,6 +45,8 @@ public class Plugin : BaseUnityPlugin
 
     /// <summary> We need to have an instance of this in order to do patches </summary>
     public readonly Harmony HarmonyPatches = new(PLUGIN_GUID);
+
+    private bool isLeftClick = false;
 
     void Awake()
     {
@@ -134,18 +137,24 @@ public class Plugin : BaseUnityPlugin
             }),
 
             Tools.CreateTriggerEntry(EventTriggerType.PointerExit,  _ => UKMDInfo.SetActive(false)),
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => {
-                UKMDInfo.SetActive(false);
-                Tools.Difficulty = GameDifficulty.UKMD;
-            }),
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ =>
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, eventData =>
             {
-                if (!Compat.AngryFix.hasAngry) return;
-                Compat.AngryFix.angryDifficultyField.difficultyListValueIndex = 5;
-                Compat.AngryFix.angryDifficultyField.difficultyListValue = DIF_NAME_SHORT;
-                logger.LogInfo("Setting Angry difficulty to UKMD");
+                Tools.Difficulty = GameDifficulty.UKMD;
+                UKMDInfo.SetActive(false);
             }),
         ]);
+
+        if (Compat.AngryFix.hasAngry)
+        {
+            ukmdTrigger.triggers.Add(
+                Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ =>
+                {
+                    Compat.AngryFix.angryDifficultyField.difficultyListValueIndex = 5;
+                    Compat.AngryFix.angryDifficultyField.difficultyListValue = DIF_NAME_SHORT;
+                    logger.LogInfo("Setting Angry difficulty to UKMD");
+                })
+            );
+        }
 
         // add ukmd button to the button activation sequence
         var activationSequence = Interactables.GetComponent<ObjectActivateInSequence>();

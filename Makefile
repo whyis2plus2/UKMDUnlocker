@@ -1,5 +1,5 @@
 PROJECT_NAME := UKMDUnlocker
-VERSION := 0.3.0
+VERSION := 0.3.1
 
 BUILD_DIR := out
 RELEASE_TARGET := whyis2plus2-$(PROJECT_NAME)-$(VERSION).zip
@@ -10,7 +10,6 @@ build:
 	@mkdir -p $(BUILD_DIR)
 	dotnet build
 	cp ./bin/Debug/netstandard2.1/$(PROJECT_NAME).dll ./out
-	cp ./bin/Debug/netstandard2.1/$(PROJECT_NAME).pdb ./out
 	cp ./README.md ./out
 	cp ./LICENSE ./out
 	cp ./icon.png ./out
