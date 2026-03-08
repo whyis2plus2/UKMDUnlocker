@@ -1,10 +1,5 @@
-> [!Note]
-> This project has been put on hold, likely indefinitely
-
 # UKMDUnlocker
-UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on the difficulty select menu.<br>
-This mod has support for [BananasDifficulty](https://thunderstore.io/c/ultrakill/p/bananastudio/BananasDifficulty/) since v0.1.2<br>
-This mod has support for [ULTRAPAIN Refueled](https://thunderstore.io/c/ultrakill/p/Kritzmaker/ULTRAPAIN_Refueled/) since v0.2.2<br>
+UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on the difficulty select menu.
 
 ## Installation
 ### NOTE: This mod does not work on any ULTRAKILL version before patch 16
@@ -13,6 +8,9 @@ This mod has support for [ULTRAPAIN Refueled](https://thunderstore.io/c/ultrakil
 
 ## Building
 ### This requires [dotnet 9](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), if you do not have it, you must install it
+### This requires [The 7zip command line utility](www.7-zip.org) for building
+### This requires these GNU coreutils: mkdir, rm
+### This requires GNU Make
 1. Create a folder called "lib" in the root directory of the mod code
 2. Add the following to it:
   - From BepInEx/core add:
@@ -23,11 +21,12 @@ This mod has support for [ULTRAPAIN Refueled](https://thunderstore.io/c/ultrakil
     * plog.dll
     * Unity.TextMeshPro.dll
     * UnityEngine.UI.dll
-  - From [BananasDifficulty](https://thunderstore.io/c/ultrakill/p/bananastudio/BananasDifficulty/)
-    * BananaDifficulty.dll
-  - From [ULTRAPAIN Refueled](https://thunderstore.io/c/ultrakill/p/Kritzmaker/ULTRAPAIN_Refueled/)
-    * Ultrapain_Refueled.dll
+  - From [AngryLevelLoader](https://github.com/eternalUnion/AngryLevelLoader)
+    * AngryLevelLoader/AngryLevelLoader.dll
+    * AngryLevelLoader/AngryUiComponents.dll
+  - From [PluginConfigurator](https://github.com/eternalUnion/UKPluginConfigurator)
+    * PluginConfigurator/PluginConfigurator.dll
 
-3. run "dotnet build"
+3. run "make release"
 
-The output file will be UKMDUnlocker.dll in bin/Debug/netstandard2.1/
+The output file will be whyis2plus2-UKMDUnlocker-0.3.0.zip
