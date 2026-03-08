@@ -10,7 +10,7 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
 #### Build-system dependencies:
   - gnu coreutils
   - gnu make
-  - [The 7zip command line utility](www.7-zip.org)
+  - [The 7zip command line utility](https://www.7-zip.org)
   - [dotnet 9](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
 #### Build steps:
 1. Create a folder called "lib" in the root directory of the mod code
