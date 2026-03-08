@@ -27,6 +27,6 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
   - From [PluginConfigurator](https://github.com/eternalUnion/UKPluginConfigurator)
     * PluginConfigurator/PluginConfigurator.dll
 
-3. run "make release"
+3. run `make release`
 
 The output file will be whyis2plus2-UKMDUnlocker-0.3.0.zip
