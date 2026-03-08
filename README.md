@@ -7,10 +7,12 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
 2. Download this and extract its contents to a folder in BepInEx/plugins
 
 ## Building
-### This requires [dotnet 9](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), if you do not have it, you must install it
-### This requires [The 7zip command line utility](www.7-zip.org) for building
-### This requires these GNU coreutils: mkdir, rm
-### This requires GNU Make
+#### Build-system dependencies:
+  - gnu coreutils
+  - gnu make
+  - [The 7zip command line utility](www.7-zip.org)
+  - [dotnet 9](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+#### Build steps:
 1. Create a folder called "lib" in the root directory of the mod code
 2. Add the following to it:
   - From BepInEx/core add:
@@ -29,4 +31,4 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
 
 3. run `make release`
 
-The output file will be whyis2plus2-UKMDUnlocker-0.3.0.zip
+The output file will be `whyis2plus2-UKMDUnlocker-0.3.0.zip`
