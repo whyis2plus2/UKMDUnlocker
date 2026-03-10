@@ -8,8 +8,6 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
 
 ## Building
 #### Build-system dependencies:
-  - gnu coreutils
-  - gnu make
   - [The 7zip command line utility](https://www.7-zip.org)
   - [dotnet 9](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
 #### Build steps:
@@ -29,6 +27,6 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
   - From [PluginConfigurator](https://github.com/eternalUnion/UKPluginConfigurator)
     * PluginConfigurator/PluginConfigurator.dll
 
-3. run `make release`
+3. run `.\build.bat` or `./build.sh`
 
 The output file will be `whyis2plus2-UKMDUnlocker-0.3.1.zip`
