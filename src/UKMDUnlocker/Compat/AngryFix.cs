@@ -34,7 +34,7 @@ public static class AngryFix
         public static void AddUKMDToDifficultyList(ref List<string> ___difficultyList)
         {
             ___difficultyList.Add(Plugin.DIF_NAME_SHORT);
-            plugin.logger.LogInfo("Added UKMD to Angry's Difficulty List");
+            plugin.logger.LogInfo($"Added {Plugin.DIF_NAME_SHORT} to Angry's Difficulty List");
         }
     }
 }
