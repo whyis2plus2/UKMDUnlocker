@@ -13,7 +13,6 @@
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
     <RootNamespace>UKMDUnlocker</RootNamespace>
-    <DebugType>Embedded</DebugType>
     <NoWarn>IDE1006, IDE0044, IDE0130, IDE0028</NoWarn>
   </PropertyGroup>
 
