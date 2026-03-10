@@ -46,8 +46,6 @@ public class Plugin : BaseUnityPlugin
     /// <summary> We need to have an instance of this in order to do patches </summary>
     public readonly Harmony HarmonyPatches = new(PLUGIN_GUID);
 
-    private bool isLeftClick = false;
-
     void Awake()
     {
         Instance = this;
