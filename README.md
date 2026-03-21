@@ -29,4 +29,4 @@ UKMD Unlocker adds the ability to select the 'ULTRAKILL MUST DIE' difficulty on 
 
 3. run `.\build.bat` or `./build.sh`
 
-The output file will be `whyis2plus2-UKMDUnlocker-0.3.1.zip`
+The output file will be `whyis2plus2-UKMDUnlockerPrevamp-0.3.1.zip`

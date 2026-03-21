@@ -51,8 +51,6 @@ public class Plugin : BaseUnityPlugin
         Instance = this;
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
         
-        Compat.AngryFix.Init();
-
         HarmonyPatches.PatchAll(typeof(Patches));
         logger.LogInfo($"Loaded {PLUGIN_NAME}");
     }
@@ -65,10 +63,10 @@ public class Plugin : BaseUnityPlugin
         Canvas = (from obj in SceneManager.GetActiveScene().GetRootGameObjects() where obj.name == "Canvas" select obj).First().transform;
 
         // difficulty buttons and difficulty infos
-        Interactables = Canvas.Find("Difficulty Select (1)/Interactables");
+        Interactables = Canvas.Find("Difficulty Select (1)");
 
         // create the new UKMD button and Info
-        AddInfo();
+        // AddInfo();
         AddButton();
     }
 
@@ -104,8 +102,9 @@ public class Plugin : BaseUnityPlugin
         UKMDButton.transform.position = buttons.GetValueSafe("V1 Must Die").transform.position;
         UKMDButton.name = $"{DIF_NAME_SHORT} Button";
 
-        // disable the original ukmd button so that it doesn't get in the way
+        // disable the original ukmd button and "Under Construction" text so that they don't get in the way
         buttons.GetValueSafe("V1 Must Die").gameObject.SetActive(false);
+        Interactables.Find("Under Construction").gameObject.SetActive(false);
 
         // the event triggers that the button uses to show/hide its description
         var ukmdTrigger = UKMDButton.GetComponent<EventTrigger>();
@@ -135,28 +134,8 @@ public class Plugin : BaseUnityPlugin
             }),
 
             Tools.CreateTriggerEntry(EventTriggerType.PointerExit,  _ => UKMDInfo.SetActive(false)),
-            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, eventData =>
-            {
-                Tools.Difficulty = GameDifficulty.UKMD;
-                UKMDInfo.SetActive(false);
-            }),
+            Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => Tools.Difficulty = 5),
         ]);
-
-        if (Compat.AngryFix.hasAngry)
-        {
-            ukmdTrigger.triggers.Add(
-                Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ =>
-                {
-                    Compat.AngryFix.angryDifficultyField.difficultyListValueIndex = 5;
-                    Compat.AngryFix.angryDifficultyField.difficultyListValue = DIF_NAME_SHORT;
-                    logger.LogInfo("Setting Angry difficulty to UKMD");
-                })
-            );
-        }
-
-        // add ukmd button to the button activation sequence
-        var activationSequence = Interactables.GetComponent<ObjectActivateInSequence>();
-        activationSequence.objectsToActivate[14 /* index of real ukmd button */] = UKMDButton;
 
         logger.LogInfo("Added UKMD Button");
     }
@@ -206,14 +185,14 @@ public class Plugin : BaseUnityPlugin
                 if (value is not int)
                 {
                     ___Log.Warning("Difficulty value is not an int");
-                    return GameDifficulty.Standard;
+                    return 2;
                 }
 
                 var difficulty = (int)value;
                 if (difficulty < 0 || difficulty > 5)
                 {
                     ___Log.Warning("Difficulty validation error");
-                    return GameDifficulty.UKMD;
+                    return 5;
                 }
 
                 // use the passed in value

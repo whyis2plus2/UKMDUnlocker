@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-PROJECT_NAME="UKMDUnlocker"
+PROJECT_NAME="UKMDUnlockerPrevamp"
 VERSION="0.3.1"
 BUILD_DIR="./out"
 TARGET="whyis2plus2-$PROJECT_NAME-$VERSION.zip"

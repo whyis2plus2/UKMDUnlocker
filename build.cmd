@@ -1,5 +1,5 @@
 @echo off
-set "projectName=UKMDUnlocker"
+set "projectName=UKMDUnlockerPrevamp"
 set "version=0.3.1"
 set "buildDir=.\out"
 set "target=whyis2plus2-%projectName%-%version%.zip"
