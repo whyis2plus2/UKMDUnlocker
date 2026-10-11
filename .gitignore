@@ -7,3 +7,5 @@ out/*
 
 whyis2plus2-UKMDUnlocker-*.zip
 *.sln
+
+!lib/AngryLevelLoader-stripped-publicized.dll

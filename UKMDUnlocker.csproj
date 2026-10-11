@@ -1,37 +1,71 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>UKMDUnlocker</AssemblyName>
-    <Description>Adds ULTRAKILL MUST DIE to the difficulty selection menu.</Description>
-    <Version>0.3.1</Version>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-    <RestoreAdditionalProjectSources>
-      https://api.nuget.org/v3/index.json;
-      https://nuget.bepinex.dev/v3/index.json;
-      https://nuget.samboy.dev/v3/index.json
-    </RestoreAdditionalProjectSources>
-    <RootNamespace>UKMDUnlocker</RootNamespace>
-    <NoWarn>IDE1006, IDE0044, IDE0130, IDE0028</NoWarn>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <AssemblyName>UKMDUnlocker</AssemblyName>
+        <Description>Adds some useful features to cybergrind packs.</Description>
+        <Version>0.3.2</Version>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>latest</LangVersion>
+        <RestoreAdditionalProjectSources>
+            https://api.nuget.org/v3/index.json;
+            https://nuget.bepinex.dev/v3/index.json;
+            https://nuget.samboy.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
+        <RootNamespace>UKMDUnlocker</RootNamespace>
+        <NoWarn>IDE1006, IDE0044, IDE0130, IDE0028, IDE0305</NoWarn>
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="UnityEngine.Modules" Version="2022.3.28" IncludeAssets="compile" />
-    <Reference Include="lib\BepInEx.dll" />
-    <Reference Include="lib\0Harmony.dll" />
+    <ItemGroup>
+        <PackageReference Include="Krafs.Publicizer" Version="2.3.2">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+        <PackageReference Include="UnityEngine.Modules" Version="2022.3.28" IncludeAssets="compile" />
 
-    <Reference Include="lib\Assembly-CSharp.dll" />
-    <Reference Include="lib\plog.dll" />
-    <Reference Include="lib\Unity.TextMeshPro.dll" />
-    <Reference Include="lib\UnityEngine.UI.dll" />
+        <Reference Include="lib/BepInEx/core/BepInEx.dll" />
+        <Reference Include="lib/BepInEx/core/0Harmony.dll" />
 
-    <Reference Include="lib\AngryLevelLoader.dll" />
-    <Reference Include="lib\AngryUiComponents.dll" />
-    <Reference Include="lib\PluginConfigurator.dll" />
-  </ItemGroup>
+        <Reference Include="lib/Assembly-CSharp.dll" />
+        <Reference Include="lib/UnityEngine.UI.dll" />
+        <Reference Include="lib/UnityEngine.AssetBundleModule.dll" />
+        <Reference Include="lib/Unity.TextMeshPro.dll" />
+        <Reference Include="lib/Unity.Addressables.dll" />
+        <Reference Include="lib/Unity.ResourceManager.dll" />
 
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-  </ItemGroup>
+        <Reference Include="lib/plog.dll" />
+        <Reference Include="lib/plog.unity.dll" />
+
+        <Reference Include="lib/AngryLevelLoader-stripped-publicized.dll"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Publicize Include="Assembly-CSharp" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="Build">
+        <CallTarget Targets="CleanCustomArtifacts" />
+        <Message Text="Copying files to ./out/" Importance="high" />
+
+        <Copy SourceFiles="./icon.png;./manifest.json;./README.md;./CHANGELOG.md;./LICENSE;$(TargetDir)$(TargetName).dll;" DestinationFolder="./out/" />
+
+        <Message Text="Finished copying files." Importance="high" />
+
+        <Message Text="Adding files to .zip ..." />
+        <ZipDirectory DestinationFile="./whyis2plus2-$(TargetName)-$(Version).zip" Overwrite="true" SourceDirectory="./out" />
+        <Message Text="Created zip file." Importance="high" />
+    </Target>
+
+    <Target Name="CleanCustomArtifacts" AfterTargets="Clean">
+        <Message Text="Clearing custom build artifacts" Importance="high" />
+        <RemoveDir Directories="./out" />
+        <Delete Files="./whyis2plus2-$(TargetName)-$(Version).zip" />
+    </Target>
+
 </Project>

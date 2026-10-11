@@ -18,12 +18,11 @@ using UnityEngine.UIElements;
 
 [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
 [BepInDependency(AngryLevelLoader.Plugin.PLUGIN_GUID, Flags: DependencyFlags.SoftDependency)]
-public class Plugin : BaseUnityPlugin
-{
+public class Plugin : BaseUnityPlugin {
     // angry level loader does this, and I quite like it
     public const string PLUGIN_GUID = "com.whyis2plus2.UKMDUnlocker";
     public const string PLUGIN_NAME = "UKMDUnlocker";
-    public const string PLUGIN_VERSION = "0.3.1";
+    public const string PLUGIN_VERSION = "0.3.2";
 
     public const string DIF_NAME = "Ultrakill Must Die";
     public const string DIF_NAME_SHORT = "UKMD";
@@ -32,34 +31,32 @@ public class Plugin : BaseUnityPlugin
     public static Plugin Instance;
 
     /// <summary> The "interactable" components of the difficulty select menu (mostly just difficulty buttons and infos) </summary>
-    public Transform Interactables {private set; get;}
+    public Transform Interactables { private set; get; }
 
     /// <summary> Easy and convenient variable for accessing the Canvas </summary>
-    public Transform Canvas {private set; get;}
+    public Transform Canvas { private set; get; }
 
     public GameObject UKMDButton = null;
     public GameObject UKMDInfo = null;
 
-    /// <summary> Public version of the Logger so that the rest of the mod can acess it </summary>
+    /// <summary> Public version of the Logger so that the rest of the mod can access it </summary>
     public ManualLogSource logger => Logger;
 
     /// <summary> We need to have an instance of this in order to do patches </summary>
     public readonly Harmony HarmonyPatches = new(PLUGIN_GUID);
 
-    void Awake()
-    {
+    void Awake() {
         Instance = this;
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
-        
-        Compat.AngryFix.Init();
 
         HarmonyPatches.PatchAll(typeof(Patches));
+        Compat.AngryFix.Init();
+
         logger.LogInfo($"Loaded {PLUGIN_NAME}");
     }
 
-    void OnSceneChange()
-    {
-        LeaderboardProperties.Difficulties[5] = (SceneHelper.CurrentScene == "Main Menu")? DIF_NAME_SHORT : DIF_NAME;
+    void OnSceneChange() {
+        LeaderboardProperties.Difficulties[5] = (SceneHelper.CurrentScene == "Main Menu") ? DIF_NAME_SHORT : DIF_NAME;
         if (SceneHelper.CurrentScene != "Main Menu") return;
 
         Canvas = (from obj in SceneManager.GetActiveScene().GetRootGameObjects() where obj.name == "Canvas" select obj).First().transform;
@@ -73,8 +70,7 @@ public class Plugin : BaseUnityPlugin
     }
 
     /// <summary> Add the UKMD button and info to the difficulty select menu </summary>
-    void AddButton()
-    {
+    void AddButton() {
         KeyValuePair<string, GameObject> FindElem(string name) =>
             new(name, Interactables.Find(name).gameObject);
 
@@ -142,17 +138,13 @@ public class Plugin : BaseUnityPlugin
             }),
         ]);
 
-        if (Compat.AngryFix.hasAngry)
-        {
-            ukmdTrigger.triggers.Add(
-                Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ =>
-                {
-                    Compat.AngryFix.angryDifficultyField.difficultyListValueIndex = 5;
-                    Compat.AngryFix.angryDifficultyField.difficultyListValue = DIF_NAME_SHORT;
-                    logger.LogInfo("Setting Angry difficulty to UKMD");
-                })
-            );
-        }
+        // if (Compat.AngryFix.hasAngry) {
+        //     ukmdTrigger.triggers.Add(
+        //         Tools.CreateTriggerEntry(EventTriggerType.PointerClick, _ => {
+        //             logger.LogInfo("Setting Angry difficulty to UKMD");
+        //         })
+        //     );
+        // }
 
         // add ukmd button to the button activation sequence
         var activationSequence = Interactables.GetComponent<ObjectActivateInSequence>();
@@ -161,8 +153,7 @@ public class Plugin : BaseUnityPlugin
         logger.LogInfo("Added UKMD Button");
     }
 
-    void AddInfo()
-    {
+    void AddInfo() {
         logger.LogInfo("Adding UKMD Info...");
 
         UKMDInfo = Instantiate(Interactables.Find("Brutal Info").gameObject, Interactables);
@@ -175,7 +166,7 @@ public class Plugin : BaseUnityPlugin
         ukmdTitle.text = $"--{DIF_NAME.ToUpper()}--";
 
         // set the description of UKMD
-        UKMDInfo.transform.Find("Text").GetComponent<TMP_Text>().text = 
+        UKMDInfo.transform.Find("Text").GetComponent<TMP_Text>().text =
             """
             <color=yellow>The unfinished version of UKMD in the game's files.</color>
 
@@ -189,36 +180,12 @@ public class Plugin : BaseUnityPlugin
         logger.LogInfo("Added UKMD Info");
     }
 
-    static class Patches
-    {
+    static class Patches {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PrefsManager), MethodType.Constructor)]
-        static void AllowUKMD(plog.Logger ___Log, ref Dictionary<string, Func<object, object>> ___propertyValidators)
-        {
-            if (!___propertyValidators.ContainsKey("difficulty")) return; // Just in case
-
+        static void AllowUKMD(Dictionary<string, Func<object, object>> ___propertyValidators) {
             // remove the old difficulty check
             ___propertyValidators.Remove("difficulty");
-
-            // add a new one that forces difficulty to be in the range 0..5 instead of 0..4
-            ___propertyValidators.Add("difficulty", (value) =>
-            {
-                if (value is not int)
-                {
-                    ___Log.Warning("Difficulty value is not an int");
-                    return GameDifficulty.Standard;
-                }
-
-                var difficulty = (int)value;
-                if (difficulty < 0 || difficulty > 5)
-                {
-                    ___Log.Warning("Difficulty validation error");
-                    return GameDifficulty.UKMD;
-                }
-
-                // use the passed in value
-                return value;
-            });
         }
     };
 }

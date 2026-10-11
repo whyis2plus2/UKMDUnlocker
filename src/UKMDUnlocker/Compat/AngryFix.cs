@@ -4,37 +4,41 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using AngryLevelLoader.Fields;
-using AngryUiComponents;
+using AngryLevelLoader.Managers;
 using BepInEx.Bootstrap;
 using HarmonyLib;
-using PluginConfig.API.Fields;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public static class AngryFix
-{
-    public static DifficultyField angryDifficultyField => hasAngry? AngryLevelLoader.Plugin.difficultyField : null;
+public static class AngryFix {
+    public static DifficultyField angryDifficultyField => hasAngry ? ConfigManager.difficultyField : null;
     public static bool hasAngry => Chainloader.PluginInfos.ContainsKey(AngryLevelLoader.Plugin.PLUGIN_GUID);
-    
+    public static int ukmdIdx;
+
     static Plugin plugin => Plugin.Instance;
 
-    public static void Init()
-    {
+    public static void Init() {
         if (!hasAngry) return;
 
         plugin.logger.LogInfo($"Detected {AngryLevelLoader.Plugin.PLUGIN_GUID}");
         plugin.HarmonyPatches.PatchAll(typeof(Patches));
     }
 
-    static class Patches
-    {
+    static class Patches {
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(AngryDifficultyManager), "Init")]
+        public static void AddUKMDToDifficultyList(ref List<AngryDifficulty> ___difficulties) {
+            ukmdIdx = ___difficulties.Count;
+            ___difficulties.Add(new(Plugin.DIF_NAME_SHORT, 5));
+        }
+
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(AngryLevelLoader.Plugin), "Start")]
-        public static void AddUKMDToDifficultyList(ref List<string> ___difficultyList)
-        {
-            ___difficultyList.Add(Plugin.DIF_NAME_SHORT);
-            plugin.logger.LogInfo($"Added {Plugin.DIF_NAME_SHORT} to Angry's Difficulty List");
+        [HarmonyPatch(typeof(AngryDifficultyManager), "SetDifficultyFromPrefs")]
+        public static bool AllowLoadingUKMDFromPrefs() {
+            if (Tools.Difficulty != GameDifficulty.UKMD) return true;
+            ConfigManager.difficultyField.difficultyListValueIndex = ukmdIdx;
+            return false;
         }
     }
 }
