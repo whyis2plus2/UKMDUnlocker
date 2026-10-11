@@ -12,15 +12,12 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public static class AngryFix {
-    public static DifficultyField angryDifficultyField => hasAngry ? ConfigManager.difficultyField : null;
-    public static bool hasAngry => Chainloader.PluginInfos.ContainsKey(AngryLevelLoader.Plugin.PLUGIN_GUID);
+    public static DifficultyField angryDifficultyField => ConfigManager.difficultyField;
     public static int ukmdIdx;
 
     static Plugin plugin => Plugin.Instance;
 
     public static void Init() {
-        if (!hasAngry) return;
-
         plugin.logger.LogInfo($"Detected {AngryLevelLoader.Plugin.PLUGIN_GUID}");
         plugin.HarmonyPatches.PatchAll(typeof(Patches));
     }

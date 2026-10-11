@@ -1,3 +1,7 @@
+# 0.3.3
+- Fixed weird shit happening when the AngryLevelLoader wasn't installed
+- Fixed the README
+
 # 0.3.2
 - I fixed it, again
 

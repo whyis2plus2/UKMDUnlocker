@@ -15,6 +15,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using BepInEx.Bootstrap;
 
 [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
 [BepInDependency(AngryLevelLoader.Plugin.PLUGIN_GUID, Flags: DependencyFlags.SoftDependency)]
@@ -22,7 +23,7 @@ public class Plugin : BaseUnityPlugin {
     // angry level loader does this, and I quite like it
     public const string PLUGIN_GUID = "com.whyis2plus2.UKMDUnlocker";
     public const string PLUGIN_NAME = "UKMDUnlocker";
-    public const string PLUGIN_VERSION = "0.3.2";
+    public const string PLUGIN_VERSION = "0.3.3";
 
     public const string DIF_NAME = "Ultrakill Must Die";
     public const string DIF_NAME_SHORT = "UKMD";
@@ -50,7 +51,12 @@ public class Plugin : BaseUnityPlugin {
         SceneManager.activeSceneChanged += (_, _) => OnSceneChange();
 
         HarmonyPatches.PatchAll(typeof(Patches));
-        Compat.AngryFix.Init();
+
+        // this prevents the mod from giving an error message and then getting booted
+        // i assume that using the `AngryFix` type is what tries to load in the angry dll
+        // as that type depends on angry
+        if (Chainloader.PluginInfos.ContainsKey(AngryLevelLoader.Plugin.PLUGIN_GUID))
+            Compat.AngryFix.Init();
 
         logger.LogInfo($"Loaded {PLUGIN_NAME}");
     }
